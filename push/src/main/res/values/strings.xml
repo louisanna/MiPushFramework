@@ -290,4 +290,16 @@ This could be the application doing a reverse registration, or the registration 
     <string name="app_uninstalled_desc">%1$s has been uninstalled, but its push registration record is still here. MiPushFramework keeps receiving and dropping its messages. Remove the record to clean it up.</string>
     <string name="action_delete_record">Remove record</string>
     <string name="app_list_stats">%1$d registered · %2$d not registered · %3$d uninstalled</string>
+<string name="settings_mipush">MiPush</string>
+    <string name="settings_drop_uninstalled">Drop pushes for uninstalled apps</string>
+    <string name="settings_drop_uninstalled_summary">Do not show notifications from apps that are no longer installed</string>
+    <string name="settings_zygisk">Zygisk forced registration</string>
+    <string name="settings_zygisk_summary_ready">Module detected · %1$d apps in the spoof list</string>
+    <string name="settings_zygisk_summary_unavailable">MiPushZygisk module or root not available</string>
+    <string name="settings_spoof_profile">Spoof profile</string>
+    <string name="settings_spoof_profile_summary">Current: %1$s</string>
+    <string name="settings_spoof_profile_dialog">Choose spoof profile</string>
+    <string name="settings_log_level">Log level</string>
+    <string name="settings_log_level_summary">Current: %1$s (takes effect after restart)</string>
+    <string name="zygisk_badge">Zygisk</string>
 </resources>

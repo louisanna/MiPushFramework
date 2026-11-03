@@ -44,7 +44,7 @@ public class LogUtils {
     public static void init(@NonNull Context context) {
         LogConfiguration configuration = new LogConfiguration.Builder()
                 .tag("Xmsf")
-                .logLevel(LogLevel.ALL)
+                .logLevel(readLogLevel(context))
                 .jsonFormatter(new DefaultJsonFormatter())
                 .xmlFormatter(new DefaultXmlFormatter())
                 .stackTraceFormatter(new DefaultStackTraceFormatter())
@@ -59,6 +59,34 @@ public class LogUtils {
                 .flattener(new ClassicFlattener())
                 .build();
         XLog.init(configuration, androidPrinter, filePrinter);
+    }
+
+    /**
+     * 日志级别来自设置页（ConfigCenter 的 LogLevel 偏好，0=ALL … 5=NONE）。
+     */
+    private static int readLogLevel(@NonNull Context context) {
+        try {
+            String level = ConfigCenter.getSharedPreferences(context).getString("LogLevel", "0");
+            if (level == null) {
+                return LogLevel.ALL;
+            }
+            switch (level) {
+                case "1":
+                    return LogLevel.DEBUG;
+                case "2":
+                    return LogLevel.INFO;
+                case "3":
+                    return LogLevel.WARN;
+                case "4":
+                    return LogLevel.ERROR;
+                case "5":
+                    return LogLevel.NONE;
+                default:
+                    return LogLevel.ALL;
+            }
+        } catch (Throwable ignored) {
+            return LogLevel.ALL;
+        }
     }
 
     public static String getLogFolder(@NonNull Context context) {

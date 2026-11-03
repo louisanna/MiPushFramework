@@ -272,4 +272,16 @@
     <string name="app_uninstalled_desc">%1$s 已经卸载，但推送注册记录仍保留在框架里，框架会继续替它接收并丢弃消息。删除记录即可清理。</string>
     <string name="action_delete_record">删除记录</string>
     <string name="app_list_stats">已注册 %1$d · 未注册 %2$d · 已卸载 %3$d</string>
+<string name="settings_mipush">MiPush</string>
+    <string name="settings_drop_uninstalled">卸载后丢弃推送</string>
+    <string name="settings_drop_uninstalled_summary">应用被卸载后，不再显示它残留的推送通知</string>
+    <string name="settings_zygisk">Zygisk 强制注册</string>
+    <string name="settings_zygisk_summary_ready">已检测到模块 · 强制列表 %1$d 个应用</string>
+    <string name="settings_zygisk_summary_unavailable">未检测到 MiPushZygisk 模块或没有 root</string>
+    <string name="settings_spoof_profile">伪装版本</string>
+    <string name="settings_spoof_profile_summary">当前：%1$s</string>
+    <string name="settings_spoof_profile_dialog">选择伪装版本</string>
+    <string name="settings_log_level">日志级别</string>
+    <string name="settings_log_level_summary">当前：%1$s（重启后生效）</string>
+    <string name="zygisk_badge">Zygisk</string>
 </resources>

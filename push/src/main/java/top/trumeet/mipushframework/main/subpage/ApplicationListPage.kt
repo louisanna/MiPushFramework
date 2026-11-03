@@ -52,10 +52,12 @@ import top.trumeet.mipushframework.component.RefreshableLazyColumn
 import top.trumeet.mipushframework.component.iconCache
 import top.trumeet.mipushframework.main.RegistrationStateStyle
 import top.trumeet.mipushframework.utils.ParseUtils
+import top.trumeet.mipushframework.utils.ZygiskHelper
 
 data class AppInfoForDisplay(
     val registrationState: Pair<String, Color>,
     val lastReceiveTime: String,
+    val isZygisk: Boolean = false,
 )
 
 private var g_itemsInfo by mutableStateOf(emptyMap<String, AppInfoForDisplay>())
@@ -191,6 +193,11 @@ private fun updateInfos(
     applications: ApplicationPageOperation.MiPushApplications,
     context: Context
 ) {
+    val zygiskPackages = try {
+        ZygiskHelper.packages(context)
+    } catch (t: Throwable) {
+        emptySet<String>()
+    }
     val infoMap = emptyMap<String, AppInfoForDisplay>().toMutableMap()
     applications.res.forEach {
         infoMap[it.packageName] = AppInfoForDisplay(
@@ -201,6 +208,7 @@ private fun updateInfos(
                 Utils.getUTC(),
                 context
             ),
+            isZygisk = zygiskPackages.contains(it.packageName),
         )
     }
     g_itemsInfo = infoMap
@@ -242,8 +250,28 @@ private fun ApplicationItem(item: RegisteredApplication, onClick: () -> Unit) {
         Spacer(Modifier.width(12.dp))
         val info = g_itemsInfo[item.packageName]
         if (info != null) {
+            if (info.isZygisk) {
+                ZygiskBadge()
+                Spacer(Modifier.width(6.dp))
+            }
             StatusPill(info.registrationState.first, info.registrationState.second)
         }
+    }
+}
+
+@Composable
+private fun ZygiskBadge() {
+    Box(
+        Modifier
+            .background(RegistrationStateStyle.GreenColor.copy(alpha = 0.12f), RoundedCornerShape(50))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    ) {
+        Text(
+            stringResource(R.string.zygisk_badge),
+            style = MaterialTheme.typography.labelSmall,
+            color = RegistrationStateStyle.GreenColor,
+            maxLines = 1,
+        )
     }
 }
 
