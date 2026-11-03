@@ -1,7 +1,9 @@
 name: build-zygisk
 
-on:
+"on":
   workflow_dispatch:
+  push:
+    branches: [ master ]
 
 permissions:
   contents: write
