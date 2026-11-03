@@ -1,0 +1,99 @@
+name: build-zygisk
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch upstream MiPushZygisk
+        run: git clone --depth 1 https://github.com/magisk317/MiPushZygisk.git src
+
+      - name: Exclude the framework package from spoofing
+        run: |
+          cd src
+          sed -i 's/com\.xiaomi\.xmsf/com.xiaomi.xmsX/' module/src/config.rs
+          grep -n 'XMSF_PACKAGE_NAME' module/src/config.rs
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - name: Build
+        run: |
+          set -e
+          NDK=$(ls -d /usr/local/lib/android/sdk/ndk/* | sort -V | tail -1)
+          echo "NDK=$NDK"
+          TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin
+          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$TOOLCHAIN/aarch64-linux-android21-clang
+          export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$TOOLCHAIN/armv7a-linux-androideabi21-clang
+          export CARGO_TARGET_AARCH64_LINUX_ANDROID_RUSTFLAGS='-C link-arg=-Wl,-z,max-page-size=16384'
+          export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_RUSTFLAGS='-C link-arg=-Wl,-z,max-page-size=16384'
+          cd src/module
+          cargo build --release --target aarch64-linux-android
+          cargo build --release --target armv7-linux-androideabi
+
+      - name: Package module
+        run: |
+          set -e
+          python3 - <<'PY'
+          import os, zipfile, pathlib
+
+          src = pathlib.Path('src')
+          out_dir = pathlib.Path('out')
+          out_dir.mkdir(exist_ok=True)
+          out = out_dir / 'MiPushZygisk_spoofonly.zip'
+
+          entries = {}
+          for name in ('META-INF/com/google/android/update-binary',
+                       'META-INF/com/google/android/updater-script'):
+              p = src / 'magisk' / name
+              entries[name] = p.read_bytes()
+
+          entries['module.prop'] = (
+              'id=mipush_zygisk\n'
+              'name=MiPush Zygisk (spoof only)\n'
+              'version=v0.6.1-spoof-only\n'
+              'versionCode=21\n'
+              'author=magisk317 / patched\n'
+              'description=Spoof Xiaomi props for selected apps; framework process excluded, no MiPushCut\n'
+          ).encode()
+          entries['customize.sh'] = b'''# MiPush Zygisk (spoof only)
+ui_print "- MiPush Zygisk: spoof only (MiPushCut disabled, framework excluded)"
+CONFIG_DIR=/data/adb/mipush_zygisk
+mkdir -p "$CONFIG_DIR"
+[ -f "$CONFIG_DIR/app.conf" ] || cp "$MODPATH/defaults/app.conf" "$CONFIG_DIR/app.conf"
+[ -f "$CONFIG_DIR/device.conf" ] || cp "$MODPATH/defaults/device.conf" "$CONFIG_DIR/device.conf"
+chmod 600 "$CONFIG_DIR/app.conf" "$CONFIG_DIR/device.conf" 2>/dev/null || true
+set_perm_recursive "$MODPATH" 0 0 0755 0644
+'''
+          entries['uninstall.sh'] = b'#!/system/bin/sh\nrm -rf /data/adb/mipush_zygisk 2>/dev/null\nexit 0\n'
+          entries['defaults/app.conf'] = (src / 'magisk/defaults/app.conf').read_bytes()
+          entries['defaults/device.conf'] = (src / 'magisk/defaults/device.conf').read_bytes()
+          entries['bin/mipushctl'] = (src / 'magisk/bin/mipushctl').read_bytes()
+          entries['zygisk/arm64-v8a.so'] = pathlib.Path(
+              'src/module/target/aarch64-linux-android/release/libmipush_zygisk.so').read_bytes()
+          entries['zygisk/armeabi-v7a.so'] = pathlib.Path(
+              'src/module/target/armv7-linux-androideabi/release/libmipush_zygisk.so').read_bytes()
+
+          with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
+              for name, data in entries.items():
+                  z.writestr(name, data)
+          print('built', out, out.stat().st_size)
+          PY
+
+      - name: Publish artifact branch
+        run: |
+          set -e
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan build-artifacts || git checkout build-artifacts
+          git add -f out/MiPushZygisk_spoofonly.zip
+          git commit -m "build: MiPushZygisk spoof-only $(date -u +%Y%m%d-%H%M)"
+          git push -f origin build-artifacts
