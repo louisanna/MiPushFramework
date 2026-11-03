@@ -21,9 +21,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import top.trumeet.common.utils.ElapsedTimer;
 import top.trumeet.common.utils.Utils;
@@ -50,6 +52,7 @@ public class ApplicationPageOperation {
         logger.d("[loadApp] filter not service package ms: %d", timer.restart());
 
         List<RegisteredApplication> res = convertToRegisteredApplicationList(packageInfos, registeredPkgs);
+        res.addAll(collectUninstalledApplications(registeredPkgs, res));
         miPushApplications.res = res;
         logger.d("[loadApp] convert to application list ms: %d", timer.restart());
 
@@ -170,8 +173,42 @@ public class ApplicationPageOperation {
         }
     }
 
+    /**
+     * 已卸载、但数据库里仍有注册记录的应用。
+     *
+     * 这类「幽灵注册」原本会直接从列表里消失：服务器端 regId 可能还没过期，
+     * 框架仍会替它收消息/回执，用户却看不到任何可操作的入口。
+     * 这里把它们补进列表，标记 installed=false，由界面提供「删除注册记录」。
+     */
+    public static List<RegisteredApplication> collectUninstalledApplications(
+            Map<String, RegisteredApplication> registeredPkgs, List<RegisteredApplication> installed) {
+        Set<String> installedPkgs = new HashSet<>();
+        for (RegisteredApplication application : installed) {
+            installedPkgs.add(application.getPackageName());
+        }
+        List<RegisteredApplication> uninstalled = new ArrayList<>();
+        for (RegisteredApplication application : registeredPkgs.values()) {
+            if (installedPkgs.contains(application.getPackageName())
+                    || Utils.isAppInstalled(application.getPackageName())) {
+                continue;
+            }
+            application.installed = false;
+            application.existServices = false;
+            if (TextUtils.isEmpty(application.appName)) {
+                application.appName = Global.ApplicationNameCache()
+                        .getAppName(Utils.getApplication(), application.getPackageName()).toString();
+            }
+            uninstalled.add(application);
+        }
+        logger.d("[loadApp] uninstalled but registered: %d", uninstalled.size());
+        return uninstalled;
+    }
+
     static void sortApplicationsForDisplay(MiPushApplications miPushApplications) {
         Collections.sort(miPushApplications.res, (o1, o2) -> {
+            if (o1.installed != o2.installed) {
+                return o1.installed ? -1 : 1;
+            }
             if (o1.getId() == null && o2.getId() == null ||
                     o1.getRegisteredType() == RegisteredApplication.RegisteredType.NotRegistered &&
                             o2.getRegisteredType() == RegisteredApplication.RegisteredType.NotRegistered) {

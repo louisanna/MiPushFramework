@@ -30,17 +30,6 @@ android {
         buildConfigField "String", "GIT_TAG", "\"" + rootProject.ext.gitTag + "\""
     }
 
-    buildTypes {
-        debug {
-            signingConfig signingConfigs.debug
-        }
-        release {
-            signingConfig signingConfigs.debug
-            minifyEnabled false
-            //shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
     testOptions {
         unitTests.all {
             jvmArgs '-noverify'
@@ -105,6 +94,42 @@ android {
                 keyAlias alias
                 keyPassword pwd
             }
+        }
+
+        // Release 签名：优先读 local.properties / 环境变量，缺省用仓库根目录的 release.jks
+        release {
+            v1SigningEnabled true
+            v2SigningEnabled true
+            enableV3Signing = true
+
+            def storePath = System.getenv("RELEASE_STORE_FILE") ?: "release.jks"
+            def storePass = System.getenv("RELEASE_STORE_PASSWORD")
+            def keyAliasName = System.getenv("RELEASE_KEY_ALIAS")
+            def keyPass = System.getenv("RELEASE_KEY_PASSWORD")
+            if (project.rootProject.file('local.properties').exists()) {
+                Properties releaseProps = new Properties()
+                releaseProps.load(project.rootProject.file('local.properties').newDataInputStream())
+                storePath = releaseProps.getProperty("RELEASE_STORE_FILE", storePath)
+                storePass = releaseProps.getProperty("RELEASE_STORE_PASSWORD", storePass)
+                keyAliasName = releaseProps.getProperty("RELEASE_KEY_ALIAS", keyAliasName)
+                keyPass = releaseProps.getProperty("RELEASE_KEY_PASSWORD", keyPass)
+            }
+
+            storeFile project.rootProject.file(storePath)
+            storePassword storePass
+            keyAlias keyAliasName
+            keyPassword keyPass
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            //shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {

@@ -1,8 +1,10 @@
 package top.trumeet.mipushframework.main.subpage
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,9 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -28,6 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,6 +44,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.trumeet.common.utils.Utils
+import top.trumeet.mipush.provider.db.EventDb
+import top.trumeet.mipush.provider.db.RegisteredApplicationDb
 import top.trumeet.mipush.provider.entities.RegisteredApplication
 import top.trumeet.mipushframework.component.AppIcon
 import top.trumeet.mipushframework.component.RefreshableLazyColumn
@@ -75,6 +84,7 @@ fun ApplicationList(
     val isPreview = LocalInspectionMode.current
     if (isPreview) g_items = getMiPushApplications()
     var isNeedRefresh by rememberSaveable(query) { mutableStateOf(true) }
+    var pendingDelete by remember { mutableStateOf<RegisteredApplication?>(null) }
 
     val refreshScope = rememberCoroutineScope { Dispatchers.IO }
     val onRefresh: (onRefreshed: () -> Unit) -> Unit = { onRefreshed ->
@@ -93,9 +103,31 @@ fun ApplicationList(
     }
 
     Page {
+        pendingDelete?.let { app ->
+            DeleteRegistrationDialog(
+                app = app,
+                onDismiss = { pendingDelete = null },
+                onConfirm = {
+                    pendingDelete = null
+                    deleteRegistration(app)
+                    onRefresh {}
+                }
+            )
+        }
         RefreshableLazyColumn(onRefresh, { false }, onRefresh, isNeedRefresh) {
-            items(g_items.res, { it.packageName }) {
-                ApplicationItem(it)
+            item { StatsHeader(g_items) }
+            items(g_items.res, { it.packageName }) { app ->
+                ApplicationItem(app) {
+                    if (app.installed) {
+                        EventListPageUtils.startManagePermissions(
+                            context,
+                            app.packageName,
+                            true
+                        )
+                    } else {
+                        pendingDelete = app
+                    }
+                }
             }
             item {
                 val notUseMiPushCount by remember { derivedStateOf { g_items.totalPkg - g_items.res.size } }
@@ -103,6 +135,56 @@ fun ApplicationList(
             }
         }
     }
+}
+
+/**
+ * 删除「已卸载但仍注册」的应用留下的本地记录：
+ * 数据库条目、事件历史、注册密钥、最近推送时间。
+ * 服务器侧 regId 无法从这里注销（见 README），但之后框架不再为它保留任何信息。
+ */
+private fun deleteRegistration(app: RegisteredApplication) {
+    RegisteredApplicationDb.delete(app.packageName)
+    EventDb.deleteByPackage(app.packageName)
+    Utils.setRegSec(app.packageName, "")
+    Utils.setLastReceiveTime(app.packageName, 0L)
+}
+
+@Composable
+private fun DeleteRegistrationDialog(
+    app: RegisteredApplication,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(app.appName) },
+        text = { Text(stringResource(R.string.app_uninstalled_desc, app.packageName)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.action_delete_record))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        }
+    )
+}
+
+@Composable
+private fun StatsHeader(applications: ApplicationPageOperation.MiPushApplications) {
+    val registered = applications.res.count {
+        it.installed && it.registeredType == RegisteredApplication.RegisteredType.Registered
+    }
+    val uninstalled = applications.res.count { !it.installed }
+    val notRegistered = applications.res.count { it.installed } - registered
+    Text(
+        text = stringResource(R.string.app_list_stats, registered, notRegistered, uninstalled),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+    )
 }
 
 private fun updateInfos(
@@ -144,52 +226,71 @@ private fun Footer(notUseMiPushCount: Int) {
 }
 
 @Composable
-private fun ApplicationItem(item: RegisteredApplication) {
-    val context = LocalContext.current
-
+private fun ApplicationItem(item: RegisteredApplication, onClick: () -> Unit) {
     Row(
         Modifier
-            .clickable {
-                EventListPageUtils.startManagePermissions(
-                    context,
-                    item.packageName,
-                    true
-                )
-            }
-            .padding(10.dp),
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AppIcon(item.packageName, item.appName, Modifier.size(48.dp))
-        Spacer(Modifier.width(20.dp))
-        Column {
+        Spacer(Modifier.width(16.dp))
+        Column(Modifier.weight(1f)) {
             AppInfo(item)
-            LastReceive(item)
+            Subtitle(item)
+        }
+        Spacer(Modifier.width(12.dp))
+        val info = g_itemsInfo[item.packageName]
+        if (info != null) {
+            StatusPill(info.registrationState.first, info.registrationState.second)
         }
     }
 }
 
 @Composable
-private fun LastReceive(item: RegisteredApplication) {
+private fun Subtitle(item: RegisteredApplication) {
     val info = g_itemsInfo[item.packageName]!!
+    val text = when {
+        !item.installed -> item.packageName + " · " + stringResource(R.string.app_uninstalled_hint)
+        info.lastReceiveTime.isNotEmpty() -> info.lastReceiveTime
+        else -> item.packageName
+    }
     Text(
-        info.lastReceiveTime,
-        style = MaterialTheme.typography.bodyLarge,
+        text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
     )
 }
 
 @Composable
 private fun AppInfo(item: RegisteredApplication) {
-    val info = g_itemsInfo[item.packageName]!!
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Text(
+        item.appName,
+        style = MaterialTheme.typography.bodyLarge,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+/**
+ * 状态胶囊，配色沿用 MiPush manager：绿=已注册、橙=未注册、红=异常/已卸载。
+ */
+@Composable
+private fun StatusPill(text: String, color: Color) {
+    val contentColor =
+        if (color == Color.Unspecified) MaterialTheme.colorScheme.onSurfaceVariant else color
+    Box(
+        Modifier
+            .background(contentColor.copy(alpha = 0.12f), RoundedCornerShape(50))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
         Text(
-            item.appName,
-            style = MaterialTheme.typography.bodyLarge,
-            color = info.registrationState.second
-        )
-        Text(
-            info.registrationState.first,
-            style = MaterialTheme.typography.bodyMedium,
-            color = info.registrationState.second
+            text,
+            style = MaterialTheme.typography.labelMedium,
+            color = contentColor,
+            maxLines = 1,
         )
     }
 }

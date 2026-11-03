@@ -29,6 +29,14 @@ public class ConfigCenter {
         return context.getSharedPreferences(BuildConfig.APPLICATION_ID + "_preferences", Context.MODE_MULTI_PROCESS);
     }
 
+    /**
+     * 目标应用已被卸载时，直接丢弃它的推送消息，不再展示通知。
+     * 默认开启：应用卸载后不应该继续弹出它的推送（服务器侧的注册不会因此注销）。
+     */
+    public boolean isDropMessagesForUninstalledPackages(Context ctx) {
+        return getSharedPreferences(ctx).getBoolean("DropMessagesForUninstalledPackages", true);
+    }
+
     public boolean isNotificationOnRegister(Context ctx) {
         return getSharedPreferences(ctx).getBoolean("NotificationOnRegister", false);
     }

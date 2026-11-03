@@ -118,6 +118,11 @@ public class MyPushMessageHandler extends IntentService {
 
         String targetPackage = container.getPackageName();
 
+        if (!Utils.isAppInstalled(targetPackage)) {
+            logger.w(packageInfo(targetPackage, "target app is not installed, skip launch"));
+            return;
+        }
+
         activeApp(context, targetPackage);
         pullUpApp(context, targetPackage, container);
     }

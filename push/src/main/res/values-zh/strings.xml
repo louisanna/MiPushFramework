@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <eat-comment />
@@ -267,4 +267,9 @@
     <string name="wizard_title_ignore_battery_optimizations_text">您需要授予“忽略电池优化”权限，否则您可能将无法在后台运行mipush服务。</string>
 
 
+    <string name="app_uninstalled">已卸载</string>
+    <string name="app_uninstalled_hint">点按清理注册记录</string>
+    <string name="app_uninstalled_desc">%1$s 已经卸载，但推送注册记录仍保留在框架里，框架会继续替它接收并丢弃消息。删除记录即可清理。</string>
+    <string name="action_delete_record">删除记录</string>
+    <string name="app_list_stats">已注册 %1$d · 未注册 %2$d · 已卸载 %3$d</string>
 </resources>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <string name="common_err">%1$s</string>
@@ -285,4 +285,9 @@ This could be the application doing a reverse registration, or the registration 
     <string name="try_to_force_register_all_applications">Try to force register all applications</string>
 
 
+    <string name="app_uninstalled">Uninstalled</string>
+    <string name="app_uninstalled_hint">Tap to remove its registration record</string>
+    <string name="app_uninstalled_desc">%1$s has been uninstalled, but its push registration record is still here. MiPushFramework keeps receiving and dropping its messages. Remove the record to clean it up.</string>
+    <string name="action_delete_record">Remove record</string>
+    <string name="app_list_stats">%1$d registered · %2$d not registered · %3$d uninstalled</string>
 </resources>

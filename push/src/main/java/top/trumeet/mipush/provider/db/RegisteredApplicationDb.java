@@ -75,6 +75,13 @@ public class RegisteredApplicationDb {
         return application.getId();
     }
 
+    public static void delete(String pkg) {
+        RegisteredApplication application = getRegisteredApplication(pkg);
+        if (application != null) {
+            daoSession.delete(application);
+        }
+    }
+
     private static long insert(RegisteredApplication application) {
         return daoSession.insert(application);
     }

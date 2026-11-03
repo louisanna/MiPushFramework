@@ -119,6 +119,16 @@ public class EventDb {
         return query.list();
     }
 
+    /**
+     * 删除某个包的全部事件记录（清理「已卸载但仍注册」的应用时使用）。
+     */
+    public static void deleteByPackage(String packageName) {
+        daoSession.queryBuilder(Event.class)
+                .where(EventDao.Properties.Pkg.eq(packageName))
+                .buildDelete()
+                .executeDeleteWithoutDetachingEntities();
+    }
+
     public static void deleteHistory() {
         String data = (Utils.getUTC().getTime() - 1000L * 3600L * 24 * 7) + "";
         QueryBuilder<Event> query = daoSession.queryBuilder(Event.class)

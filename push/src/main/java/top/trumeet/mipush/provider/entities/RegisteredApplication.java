@@ -124,6 +124,13 @@ public class RegisteredApplication implements Parcelable {
     @Transient
     public Date lastReceiveTime = new Date(0);
 
+    /**
+     * 应用是否仍安装在设备上。false 表示「已卸载但注册记录还在」，
+     * 这种条目只用于展示/清理，不参与正常的推送投递。
+     */
+    @Transient
+    public boolean installed = true;
+
     @Generated(hash = 686342621)
     public RegisteredApplication(Long id, String packageName, int type, boolean notificationOnRegister,
             int registeredType, String appName) {

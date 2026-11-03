@@ -116,13 +116,32 @@ public class MyMIPushNotificationHelper {
      */
     public static void notifyPushMessage(Context context, byte[] decryptedContent) {
         XmPushActionContainer container = XMPushUtils.packToContainer(decryptedContent);
-        AppInfoUtils.AppNotificationOp notificationOp = AppInfoUtils.getAppNotificationOp(context, getTargetPackage(container), true);
+        String targetPackage = getTargetPackage(container);
+        if (shouldDropForUninstalledPackage(context, targetPackage)) {
+            logger.w("drop message of uninstalled package: " + targetPackage);
+            return;
+        }
+        AppInfoUtils.AppNotificationOp notificationOp = AppInfoUtils.getAppNotificationOp(context, targetPackage, true);
         if (notificationOp == AppInfoUtils.AppNotificationOp.NOT_ALLOWED) {
-            logger.w("Do not notify because user block " + getTargetPackage(container) + "'s notification");
+            logger.w("Do not notify because user block " + targetPackage + "'s notification");
         } else {
             loadConfigurationsOnce(context);
             handleNotificationByConfigurations(context, decryptedContent, container.getPackageName(), container);
         }
+    }
+
+    /**
+     * 卸载后的“幽灵推送”：应用已经不在设备上，但服务器仍按旧的 regId 投递。
+     * 这里直接丢弃、不再渲染通知（消息仍会被正常 ACK，避免服务器反复重试同一条）。
+     */
+    private static boolean shouldDropForUninstalledPackage(Context context, String packageName) {
+        if (TextUtils.isEmpty(packageName)) {
+            return false;
+        }
+        if (!Global.ConfigCenter().isDropMessagesForUninstalledPackages(context)) {
+            return false;
+        }
+        return !Utils.isAppInstalled(packageName);
     }
 
     private static void handleNotificationByConfigurations(Context context, byte[] decryptedContent, String packageName, XmPushActionContainer container) {
