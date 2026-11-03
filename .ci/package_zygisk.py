@@ -27,15 +27,27 @@ ui_print "- MiPush Zygisk: spoof only (MiPushCut disabled, framework excluded)"
 CONFIG_DIR=/data/adb/mipush_zygisk
 mkdir -p "$CONFIG_DIR"
 [ -f "$CONFIG_DIR/app.conf" ] || cp "$MODPATH/defaults/app.conf" "$CONFIG_DIR/app.conf"
-[ -f "$CONFIG_DIR/device.conf" ] || cp "$MODPATH/defaults/device.conf" "$CONFIG_DIR/device.conf"
+if [ -f "$MODPATH/defaults/device.conf" ]; then
+  [ -f "$CONFIG_DIR/device.conf" ] || cp "$MODPATH/defaults/device.conf" "$CONFIG_DIR/device.conf"
+else
+  [ -f "$CONFIG_DIR/device.conf" ] || : > "$CONFIG_DIR/device.conf"
+fi
 chmod 600 "$CONFIG_DIR/app.conf" "$CONFIG_DIR/device.conf" 2>/dev/null || true
 set_perm_recursive "$MODPATH" 0 0 0755 0644
 """.encode()
 
 entries["uninstall.sh"] = "#!/system/bin/sh\nrm -rf /data/adb/mipush_zygisk 2>/dev/null\nexit 0\n".encode()
 entries["defaults/app.conf"] = (src / "magisk/defaults/app.conf").read_bytes()
-entries["defaults/device.conf"] = (src / "magisk/defaults/device.conf").read_bytes()
-entries["bin/mipushctl"] = (src / "magisk/bin/mipushctl").read_bytes()
+
+device_conf = src / "magisk/defaults/device.conf"
+entries["defaults/device.conf"] = device_conf.read_bytes() if device_conf.exists() else (
+    "# MiPush Zygisk device overrides\n"
+).encode()
+
+ctl = src / "magisk/bin/mipushctl"
+if ctl.exists():
+    entries["bin/mipushctl"] = ctl.read_bytes()
+
 entries["zygisk/arm64-v8a.so"] = pathlib.Path(
     "src/module/target/aarch64-linux-android/release/libmipush_zygisk.so").read_bytes()
 entries["zygisk/armeabi-v7a.so"] = pathlib.Path(
