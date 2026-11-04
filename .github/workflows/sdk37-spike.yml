@@ -1,0 +1,45 @@
+name: sdk37-spike
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ feat/android-17-target ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Prepare SDK 37 tree
+        run: python3 .ci/prepare_sdk37.py
+
+      - name: Build
+        run: |
+          set +e
+          chmod +x gradlew
+          ./gradlew :push:assembleNormalRelease --no-daemon --console=plain > /tmp/build.log 2>&1
+          echo "EXIT=$?" > /tmp/status.txt
+          cat /tmp/status.txt
+          tail -40 /tmp/build.log
+
+      - name: Publish log
+        if: always()
+        run: |
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout -B build-artifacts
+          mkdir -p out
+          cp /tmp/build.log out/sdk37-build.log || true
+          cp /tmp/status.txt out/sdk37-status.txt || true
+          git add -f out/sdk37-build.log out/sdk37-status.txt
+          git commit -m "ci: sdk37 spike log $(date -u +%H%M)" || true
+          git push -f origin build-artifacts
