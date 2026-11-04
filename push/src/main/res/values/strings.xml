@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <string name="common_err">%1$s</string>
@@ -303,4 +303,5 @@ This could be the application doing a reverse registration, or the registration 
     <string name="settings_log_level_summary">Current: %1$s (takes effect after restart)</string>
     <string name="zygisk_badge">Zygisk</string>
 <string name="settings_zygisk_summary_no_root">Module detected, but no root permission (read-only)</string>
+    <string name="app_registration_observed">Push observed</string>
 </resources>

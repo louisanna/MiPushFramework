@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <eat-comment />
@@ -285,4 +285,5 @@
     <string name="settings_log_level_summary">当前：%1$s（重启后生效）</string>
     <string name="zygisk_badge">Zygisk</string>
 <string name="settings_zygisk_summary_no_root">已检测到模块，但没有 root 权限（只读）</string>
+    <string name="app_registration_observed">检测到推送</string>
 </resources>

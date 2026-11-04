@@ -19,6 +19,13 @@ object RegistrationStateStyle {
         if (!app.installed) {
             return Pair(shortLabel(app, context), ErrorColor)
         }
+        // 收到过推送但本地没有注册结果记录（例如框架重装后事件库被清空，
+        // 而服务器端的 regId 仍然有效）：标记为“检测到推送”，不要误报成未注册。
+        if (app.registeredType != RegisteredApplication.RegisteredType.Registered
+            && app.lastReceiveTime.time > 0L
+        ) {
+            return Pair(context.getString(R.string.app_registration_observed), YellowColor)
+        }
         val prefix =
             if (!app.existServices) context.getString(R.string.mipush_services_not_found) + " - "
             else ""
