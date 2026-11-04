@@ -3,24 +3,37 @@ package top.trumeet.mipushframework.main
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -126,13 +139,13 @@ private fun Main(
     val navController = rememberNavController()
 
     Theme {
-        Column(
+        Row(
             Modifier
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
+                .fillMaxSize()
         ) {
+            SideNavigationRail(navController)
             Column(Modifier.weight(1f)) {
                 NavHost(
                     navController = navController,
@@ -140,7 +153,71 @@ private fun Main(
                     builder = navContent()
                 )
             }
-            BottomNavigationBar(navController)
+        }
+    }
+}
+
+/**
+ * 左侧导航栏，参照 MiPush 管理器的平板布局：图标胶囊 + 选中项标签。
+ */
+@Composable
+fun SideNavigationRail(navController: NavController) {
+    val items = listOf(Screen.Events, Screen.Apps, Screen.Settings)
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    Column(
+        Modifier
+            .fillMaxHeight()
+            .width(92.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(vertical = 14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            painterResource(R.drawable.ic_notifications_black_24dp),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(26.dp)
+        )
+        Spacer(Modifier.height(18.dp))
+        items.forEach { screen ->
+            val selected = currentRoute == screen.route.toString()
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    Modifier
+                        .padding(vertical = 4.dp)
+                        .size(52.dp)
+                        .background(
+                            if (selected) MaterialTheme.colorScheme.primaryContainer
+                            else Color.Transparent,
+                            RoundedCornerShape(16.dp)
+                        )
+                        .clickable {
+                            navController.navigate(screen.route.toString()) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painterResource(screen.icon),
+                        contentDescription = stringResource(screen.route),
+                        tint = if (selected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (selected) {
+                    Text(
+                        stringResource(screen.route),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 }

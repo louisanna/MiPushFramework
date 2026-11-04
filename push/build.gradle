@@ -17,11 +17,11 @@ android {
         // @see com.xiaomi.mipush.sdk.PushServiceClient#register
         // @see com.xiaomi.mipush.sdk.PushServiceClient#createServiceIntent
         // @see com.xiaomi.mipush.sdk.PushServiceClient#getPushServiceName
-        // Fork 版本号重新编号：versionName 0.1.0 / versionCode 10007。
+        // Fork 版本号重新编号：versionName 0.1.0 / versionCode 10008。
         // 10000 < 上游 0.3.11 的 1003003000，属于降级；从旧版升级必须先彻底移除旧包
         // （pm uninstall），让系统在重启后把这个 APK 当成全新安装来解析。
-        versionCode 10007
-        versionName "0.1.7"
+        versionCode 10008
+        versionName "0.1.8"
         archivesBaseName = "xmsf-v${versionName}"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'

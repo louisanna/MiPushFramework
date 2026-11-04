@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -272,20 +273,12 @@ private fun Footer(notUseMiPushCount: Int) {
 
 @Composable
 private fun ApplicationItem(item: RegisteredApplication, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
-        )
-    ) {
+    Column {
         Row(
             Modifier
                 .clickable(onClick = onClick)
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AppIcon(item.packageName, item.appName, Modifier.size(44.dp))
@@ -304,6 +297,13 @@ private fun ApplicationItem(item: RegisteredApplication, onClick: () -> Unit) {
                 StatusPill(info.registrationState.first, info.registrationState.second)
             }
         }
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 74.dp, end = 16.dp)
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant)
+        )
     }
 }
 
