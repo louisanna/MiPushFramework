@@ -31,7 +31,7 @@ def patch_push(s):
 
 
 def patch_wrapper(s):
-    return re.sub(r"gradle-[0-9.]+-bin\.zip", "gradle-9.9-bin.zip", s)
+    return re.sub(r"gradle-[0-9.]+-bin\.zip", "gradle-9.8.2-bin.zip", s)
 
 
 rw("build.gradle", patch_root)
