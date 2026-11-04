@@ -1,5 +1,6 @@
 package top.trumeet.mipushframework.main
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -35,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
@@ -139,19 +141,40 @@ private fun Main(
     val navController = rememberNavController()
 
     Theme {
-        Row(
-            Modifier
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .fillMaxSize()
-        ) {
-            SideNavigationRail(navController)
-            Column(Modifier.weight(1f)) {
-                NavHost(
-                    navController = navController,
-                    startDestination = startDestination,
-                    builder = navContent()
-                )
+        val configuration = LocalConfiguration.current
+        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if (isLandscape) {
+            Row(
+                Modifier
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .fillMaxSize()
+            ) {
+                SideNavigationRail(navController)
+                Column(Modifier.weight(1f)) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = startDestination,
+                        builder = navContent()
+                    )
+                }
+            }
+        } else {
+            Column(
+                Modifier
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(Modifier.weight(1f)) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = startDestination,
+                        builder = navContent()
+                    )
+                }
+                BottomNavigationBar(navController)
             }
         }
     }

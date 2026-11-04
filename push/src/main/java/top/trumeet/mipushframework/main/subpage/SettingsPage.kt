@@ -3,6 +3,7 @@ package top.trumeet.mipushframework.main.subpage
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -50,7 +51,6 @@ import top.trumeet.mipushframework.MainPageOperation
 import top.trumeet.mipushframework.component.SettingsGroup
 import top.trumeet.mipushframework.component.SettingsItem
 import top.trumeet.mipushframework.main.AdvancedSettingsPage
-import top.trumeet.mipushframework.main.HelpPage
 import top.trumeet.mipushframework.utils.ZygiskHelper
 import top.trumeet.ui.theme.Theme
 
@@ -333,16 +333,12 @@ private fun AboutBlock() {
 
     SettingsGroup(title = stringResource(R.string.action_about)) {
         SettingsItem(
-            title = stringResource(R.string.helplib_title)
-        ) {
-            context.startActivity(Intent(context, HelpPage::class.java))
-        }
-
-        SettingsItem(
             title = stringResource(R.string.action_update)
         ) {
-            mainPageOperation.gotoGitHubReleasePage()
-            Toast.makeText(context, R.string.update_toast, Toast.LENGTH_LONG).show()
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/louisanna/MiPushFramework/releases"))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
         }
 
         SettingsItem(
