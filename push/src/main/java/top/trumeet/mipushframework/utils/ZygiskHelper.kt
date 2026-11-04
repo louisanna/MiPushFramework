@@ -142,6 +142,13 @@ object ZygiskHelper {
             ).exec()
             tmp.delete()
             cache = null
+            if (out.isSuccess) {
+                ZygiskDb.export(
+                    context,
+                    ZygiskDb.parsePackages(updated),
+                    ZygiskDb.parseProfile(updated)
+                )
+            }
             out.isSuccess
         } catch (t: Throwable) {
             XLog.tag(TAG).e("write config failed", t)
