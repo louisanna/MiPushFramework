@@ -311,4 +311,5 @@ This could be the application doing a reverse registration, or the registration 
     <string name="zygisk_state_off">Not in module config</string>
     <string name="zygisk_state_unavailable">Module not detected or no root</string>
     <string name="zygisk_force_register">Zygisk force register</string>
+    <string name="root_required">Root permission is required to edit the Zygisk config</string>
 </resources>

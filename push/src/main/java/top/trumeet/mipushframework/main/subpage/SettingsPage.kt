@@ -117,8 +117,12 @@ private fun MiPushBlock() {
             },
             key = "ZygiskForceRegister",
             defaultValue = true,
-            enabled = usable
-        ) {}
+            enabled = true
+        ) {
+            if (!usable) {
+                Toast.makeText(context, R.string.root_required, Toast.LENGTH_SHORT).show()
+            }
+        }
 
         SettingsItem(
             title = stringResource(R.string.settings_spoof_profile),
@@ -126,8 +130,11 @@ private fun MiPushBlock() {
                 R.string.settings_spoof_profile_summary,
                 snapshot?.profile ?: "-"
             ),
-            enabled = usable
-        ) { showProfileDialog = true }
+            enabled = true
+        ) {
+            if (usable) showProfileDialog = true
+            else Toast.makeText(context, R.string.root_required, Toast.LENGTH_SHORT).show()
+        }
     }
 
     if (showProfileDialog) {

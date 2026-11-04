@@ -293,4 +293,5 @@
     <string name="zygisk_state_off">不在模块配置中</string>
     <string name="zygisk_state_unavailable">未检测到模块或没有 root</string>
     <string name="zygisk_force_register">Zygisk 强制注册</string>
+    <string name="root_required">需要 root 权限才能修改 Zygisk 配置</string>
 </resources>
