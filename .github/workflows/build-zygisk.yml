@@ -17,10 +17,8 @@ jobs:
       - name: Fetch upstream MiPushZygisk
         run: git clone --depth 1 https://github.com/magisk317/MiPushZygisk.git src
 
-      - name: Exclude the framework package from spoofing
-        run: |
-          sed -i 's/com\.xiaomi\.xmsf/com.xiaomi.xmsX/' src/module/src/config.rs
-          grep -n XMSF_PACKAGE_NAME src/module/src/config.rs
+      - name: Patch module (exclude framework, read apps.db)
+        run: python3 .ci/patch_zygisk.py
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -31,7 +29,11 @@ jobs:
           set -e
           NDK=$(ls -d /usr/local/lib/android/sdk/ndk/* | sort -V | tail -1)
           TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin
+          export CC_aarch64_linux_android=$TOOLCHAIN/aarch64-linux-android21-clang
+          export AR_aarch64_linux_android=$TOOLCHAIN/llvm-ar
           export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$TOOLCHAIN/aarch64-linux-android21-clang
+          export CC_armv7_linux_androideabi=$TOOLCHAIN/armv7a-linux-androideabi21-clang
+          export AR_armv7_linux_androideabi=$TOOLCHAIN/llvm-ar
           export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$TOOLCHAIN/armv7a-linux-androideabi21-clang
           export CARGO_TARGET_AARCH64_LINUX_ANDROID_RUSTFLAGS='-C link-arg=-Wl,-z,max-page-size=16384'
           export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_RUSTFLAGS='-C link-arg=-Wl,-z,max-page-size=16384'
