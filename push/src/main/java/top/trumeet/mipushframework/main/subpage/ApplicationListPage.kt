@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -181,12 +184,46 @@ private fun StatsHeader(applications: ApplicationPageOperation.MiPushApplication
     }
     val uninstalled = applications.res.count { !it.installed }
     val notRegistered = applications.res.count { it.installed } - registered
-    Text(
-        text = stringResource(R.string.app_list_stats, registered, notRegistered, uninstalled),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-    )
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        StatCard(registered.toString(), stringResource(R.string.app_registered), RegistrationStateStyle.GreenColor, Modifier.weight(1f))
+        StatCard(notRegistered.toString(), stringResource(R.string.status_app_not_registered), RegistrationStateStyle.YellowColor, Modifier.weight(1f))
+        StatCard(uninstalled.toString(), stringResource(R.string.app_uninstalled), RegistrationStateStyle.ErrorColor, Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun StatCard(value: String, label: String, color: Color, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
+        )
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                value,
+                style = MaterialTheme.typography.headlineSmall,
+                color = color
+            )
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
+    }
 }
 
 private fun updateInfos(
@@ -235,26 +272,37 @@ private fun Footer(notUseMiPushCount: Int) {
 
 @Composable
 private fun ApplicationItem(item: RegisteredApplication, onClick: () -> Unit) {
-    Row(
-        Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
+        )
     ) {
-        AppIcon(item.packageName, item.appName, Modifier.size(48.dp))
-        Spacer(Modifier.width(16.dp))
-        Column(Modifier.weight(1f)) {
-            AppInfo(item)
-            Subtitle(item)
-        }
-        Spacer(Modifier.width(12.dp))
-        val info = g_itemsInfo[item.packageName]
-        if (info != null) {
-            if (info.isZygisk) {
-                ZygiskBadge()
-                Spacer(Modifier.width(6.dp))
+        Row(
+            Modifier
+                .clickable(onClick = onClick)
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AppIcon(item.packageName, item.appName, Modifier.size(44.dp))
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                AppInfo(item)
+                Subtitle(item)
             }
-            StatusPill(info.registrationState.first, info.registrationState.second)
+            Spacer(Modifier.width(10.dp))
+            val info = g_itemsInfo[item.packageName]
+            if (info != null) {
+                if (info.isZygisk) {
+                    ZygiskBadge()
+                    Spacer(Modifier.width(6.dp))
+                }
+                StatusPill(info.registrationState.first, info.registrationState.second)
+            }
         }
     }
 }

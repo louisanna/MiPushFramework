@@ -306,4 +306,9 @@ This could be the application doing a reverse registration, or the registration 
     <string name="app_registration_observed">Push observed</string>
     <string name="settings_pull_up_framework">Bring framework to front on push</string>
     <string name="settings_pull_up_framework_summary">Requires "display over other apps"; otherwise Android blocks background activity starts</string>
+    <string name="zygisk_state_loading">Reading module config…</string>
+    <string name="zygisk_state_on">In module config: Zygisk will spoof Xiaomi props for this app</string>
+    <string name="zygisk_state_off">Not in module config</string>
+    <string name="zygisk_state_unavailable">Module not detected or no root</string>
+    <string name="zygisk_force_register">Zygisk force register</string>
 </resources>

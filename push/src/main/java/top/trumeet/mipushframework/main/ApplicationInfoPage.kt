@@ -18,22 +18,30 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +65,11 @@ import top.trumeet.mipush.provider.db.RegisteredApplicationDb
 import top.trumeet.mipush.provider.entities.RegisteredApplication
 import top.trumeet.mipush.provider.entities.RegisteredApplication.RegisteredType
 import top.trumeet.mipushframework.component.MarkdownView
+import top.trumeet.mipushframework.utils.ZygiskHelper
 import top.trumeet.ui.theme.Theme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ApplicationInfoPage : ComponentActivity() {
     companion object {
@@ -130,8 +142,83 @@ class ApplicationInfoPage : ComponentActivity() {
     fun SettingsScreen() {
         Column {
             ApplicationInfoHeader()
+            ZygiskSwitch()
             Misc()
             NotificationChannels()
+        }
+    }
+
+    /**
+     * 把当前应用加入/移出 MiPushZygisk 模块的 app.conf。
+     * 加入后模块会在该应用进程启动前伪装小米设备属性（强制走 MiPush）。
+     */
+    @Composable
+    fun ZygiskSwitch() {
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
+        var loaded by remember { mutableStateOf(false) }
+        var usable by remember { mutableStateOf(false) }
+        var inModule by remember { mutableStateOf(false) }
+        var busy by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            val snapshot = withContext(Dispatchers.IO) {
+                try {
+                    ZygiskHelper.snapshot(true)
+                } catch (t: Throwable) {
+                    null
+                }
+            }
+            usable = snapshot?.usable == true
+            inModule = snapshot?.packages?.contains(applicationInfo.packageName) == true
+            loaded = true
+        }
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.zygisk_force_register),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    when {
+                        !loaded -> stringResource(R.string.zygisk_state_loading)
+                        !usable -> stringResource(R.string.zygisk_state_unavailable)
+                        inModule -> stringResource(R.string.zygisk_state_on)
+                        else -> stringResource(R.string.zygisk_state_off)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Switch(
+                checked = inModule,
+                enabled = loaded && usable && !busy,
+                onCheckedChange = { checked ->
+                    busy = true
+                    scope.launch {
+                        val ok = withContext(Dispatchers.IO) {
+                            try {
+                                if (checked) {
+                                    ZygiskHelper.addPackage(context, applicationInfo.packageName)
+                                } else {
+                                    ZygiskHelper.removePackage(context, applicationInfo.packageName)
+                                }
+                            } catch (t: Throwable) {
+                                false
+                            }
+                        }
+                        if (ok) inModule = checked
+                        busy = false
+                    }
+                }
+            )
         }
     }
 
@@ -143,40 +230,54 @@ class ApplicationInfoPage : ComponentActivity() {
             AppCompatResources.getDrawable(context, android.R.mipmap.sym_def_app_icon)!!
         else applicationInfo.getIcon(context)
         val icon = drawable.toBitmap().asImageBitmap()
-        Row(
-            modifier = Modifier.padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
+            )
         ) {
-            IconButton({
-                RegistrationHelper(
-                    context,
-                    applicationInfo.packageName
-                ).deleteRegistrationInfoAndRetryForceRegister()
-            }) {
-                Image(icon, "Application Icon")
-            }
-            Column(Modifier.weight(1f)) {
-                Text(
-                    applicationInfo.appName,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    applicationInfo.packageName,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            IconButton({
-                val uri = Uri.fromParts("package", applicationInfo.packageName, null)
-                context.startActivity(
-                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        .setData(uri)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
-            }) {
-                Image(
-                    painterResource(R.drawable.ic_info),
-                    stringResource(R.string.application_info_label)
-                )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton({
+                    RegistrationHelper(
+                        context,
+                        applicationInfo.packageName
+                    ).deleteRegistrationInfoAndRetryForceRegister()
+                }) {
+                    Image(icon, "Application Icon", Modifier.size(52.dp))
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        applicationInfo.appName,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        applicationInfo.packageName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton({
+                    val uri = Uri.fromParts("package", applicationInfo.packageName, null)
+                    context.startActivity(
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                            .setData(uri)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                }) {
+                    Image(
+                        painterResource(R.drawable.ic_info),
+                        stringResource(R.string.application_info_label)
+                    )
+                }
             }
         }
     }

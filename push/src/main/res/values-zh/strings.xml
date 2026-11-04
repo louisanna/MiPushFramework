@@ -288,4 +288,9 @@
     <string name="app_registration_observed">检测到推送</string>
     <string name="settings_pull_up_framework">收到推送时拉起框架</string>
     <string name="settings_pull_up_framework_summary">需要授予「显示在其他应用上层」权限，否则 Android 会拦截后台启动</string>
+    <string name="zygisk_state_loading">正在读取模块配置…</string>
+    <string name="zygisk_state_on">已在模块配置中：Zygisk 会为它伪装小米设备</string>
+    <string name="zygisk_state_off">不在模块配置中</string>
+    <string name="zygisk_state_unavailable">未检测到模块或没有 root</string>
+    <string name="zygisk_force_register">Zygisk 强制注册</string>
 </resources>
