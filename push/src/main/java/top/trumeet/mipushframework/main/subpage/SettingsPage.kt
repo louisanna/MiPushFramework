@@ -91,6 +91,7 @@ private fun MiPushBlock() {
     }
 
     val usable = snapshot?.usable == true
+    val modulePresent = snapshot?.modulePresent == true
 
     SettingsGroup(title = stringResource(R.string.settings_mipush)) {
         SettingsItem(
@@ -102,10 +103,10 @@ private fun MiPushBlock() {
 
         SettingsItem(
             title = stringResource(R.string.settings_zygisk),
-            summary = if (usable) {
-                stringResource(R.string.settings_zygisk_summary_ready, snapshot!!.packages.size)
-            } else {
-                stringResource(R.string.settings_zygisk_summary_unavailable)
+            summary = when {
+                usable -> stringResource(R.string.settings_zygisk_summary_ready, snapshot!!.packages.size)
+                modulePresent -> stringResource(R.string.settings_zygisk_summary_no_root)
+                else -> stringResource(R.string.settings_zygisk_summary_unavailable)
             },
             key = "ZygiskForceRegister",
             defaultValue = true,

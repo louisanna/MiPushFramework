@@ -17,6 +17,18 @@ object ZygiskHelper {
     const val CONFIG_DIR = "/data/adb/mipush_zygisk"
     const val CONFIG_FILE = "$CONFIG_DIR/app.conf"
 
+    /** 模块在 post-fs-data 阶段生成的公开副本，没有 root 时也能读。 */
+    const val PUBLIC_CONF = "/data/local/tmp/mipush_zygisk_app.conf"
+
+    private fun prop(name: String): String = try {
+        val process = Runtime.getRuntime().exec(arrayOf("getprop", name))
+        val value = process.inputStream.bufferedReader().readText().trim()
+        process.waitFor()
+        value
+    } catch (t: Throwable) {
+        ""
+    }
+
     /** 模块只支持这两个伪装档位（见 bin/mipushctl）。 */
     val PROFILES = listOf("miui14", "os4")
 
@@ -49,11 +61,18 @@ object ZygiskHelper {
     fun snapshot(force: Boolean = false): Snapshot {
         cache?.let { if (!force) return it }
         val root = hasRoot()
-        if (!root) {
-            return Snapshot(false, false, null, emptySet()).also { cache = it }
+        var lines: List<String> = if (root) shell("cat $CONFIG_FILE") else emptyList()
+        var present = root && (lines.isNotEmpty() || shell("test -d $CONFIG_DIR && echo yes").isNotEmpty())
+        if (!present) {
+            // 没有 root 时的只读回退：模块在 post-fs-data 里生成的公开副本 / 属性
+            val pub = java.io.File(PUBLIC_CONF)
+            if (pub.canRead()) {
+                lines = pub.readLines()
+                present = true
+            } else if (prop("mipush.zygisk.enabled") == "true") {
+                present = true
+            }
         }
-        val lines = shell("cat $CONFIG_FILE")
-        val present = lines.isNotEmpty() || shell("test -d $CONFIG_DIR && echo yes").isNotEmpty()
         var profile: String? = null
         val packages = LinkedHashSet<String>()
         for (raw in lines) {

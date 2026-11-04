@@ -284,4 +284,5 @@
     <string name="settings_log_level">日志级别</string>
     <string name="settings_log_level_summary">当前：%1$s（重启后生效）</string>
     <string name="zygisk_badge">Zygisk</string>
+<string name="settings_zygisk_summary_no_root">已检测到模块，但没有 root 权限（只读）</string>
 </resources>

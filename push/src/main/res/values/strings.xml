@@ -302,4 +302,5 @@ This could be the application doing a reverse registration, or the registration 
     <string name="settings_log_level">Log level</string>
     <string name="settings_log_level_summary">Current: %1$s (takes effect after restart)</string>
     <string name="zygisk_badge">Zygisk</string>
+<string name="settings_zygisk_summary_no_root">Module detected, but no root permission (read-only)</string>
 </resources>
