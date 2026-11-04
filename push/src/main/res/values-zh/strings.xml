@@ -286,4 +286,6 @@
     <string name="zygisk_badge">Zygisk</string>
 <string name="settings_zygisk_summary_no_root">已检测到模块，但没有 root 权限（只读）</string>
     <string name="app_registration_observed">检测到推送</string>
+    <string name="settings_pull_up_framework">收到推送时拉起框架</string>
+    <string name="settings_pull_up_framework_summary">需要授予「显示在其他应用上层」权限，否则 Android 会拦截后台启动</string>
 </resources>

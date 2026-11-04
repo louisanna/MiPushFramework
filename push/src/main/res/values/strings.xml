@@ -304,4 +304,6 @@ This could be the application doing a reverse registration, or the registration 
     <string name="zygisk_badge">Zygisk</string>
 <string name="settings_zygisk_summary_no_root">Module detected, but no root permission (read-only)</string>
     <string name="app_registration_observed">Push observed</string>
+    <string name="settings_pull_up_framework">Bring framework to front on push</string>
+    <string name="settings_pull_up_framework_summary">Requires "display over other apps"; otherwise Android blocks background activity starts</string>
 </resources>

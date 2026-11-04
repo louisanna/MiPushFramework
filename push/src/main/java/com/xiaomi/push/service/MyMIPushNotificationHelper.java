@@ -121,6 +121,9 @@ public class MyMIPushNotificationHelper {
             logger.w("drop message of uninstalled package: " + targetPackage);
             return;
         }
+        if (Global.ConfigCenter().isPullUpFrameworkOnPush(context)) {
+            pullUpFramework(context);
+        }
         AppInfoUtils.AppNotificationOp notificationOp = AppInfoUtils.getAppNotificationOp(context, targetPackage, true);
         if (notificationOp == AppInfoUtils.AppNotificationOp.NOT_ALLOWED) {
             logger.w("Do not notify because user block " + targetPackage + "'s notification");
@@ -142,6 +145,22 @@ public class MyMIPushNotificationHelper {
             return false;
         }
         return !Utils.isAppInstalled(packageName);
+    }
+
+    /**
+     * 把框架界面拉到前台。Android 10+ 会拦截后台启动 Activity，
+     * 只有在用户授予“显示在其他应用上层”权限后才会生效。
+     */
+    private static void pullUpFramework(Context context) {
+        try {
+            Intent intent = new Intent();
+            intent.setClassName(context.getPackageName(), "top.trumeet.mipushframework.main.MainPage");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            context.startActivity(intent);
+            logger.d("pull up framework on push");
+        } catch (Throwable e) {
+            logger.w("pull up framework failed: " + e);
+        }
     }
 
     private static void handleNotificationByConfigurations(Context context, byte[] decryptedContent, String packageName, XmPushActionContainer container) {

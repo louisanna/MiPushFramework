@@ -19,6 +19,14 @@ object RegistrationStateStyle {
         if (!app.installed) {
             return Pair(shortLabel(app, context), ErrorColor)
         }
+        // 收到过推送且本地存有该应用的 regSec（说明框架能解密它的消息），
+        // 就视为已注册：服务器端 regId 有效、消息也能正常处理。
+        if (app.registeredType != RegisteredApplication.RegisteredType.Registered
+            && app.lastReceiveTime.time > 0L
+            && !top.trumeet.common.utils.Utils.getRegSec(app.packageName).isNullOrEmpty()
+        ) {
+            return Pair(context.getString(R.string.app_registered), GreenColor)
+        }
         // 收到过推送但本地没有注册结果记录（例如框架重装后事件库被清空，
         // 而服务器端的 regId 仍然有效）：标记为“检测到推送”，不要误报成未注册。
         if (app.registeredType != RegisteredApplication.RegisteredType.Registered

@@ -41,6 +41,13 @@ public class ConfigCenter {
         return getSharedPreferences(ctx).getBoolean("NotificationOnRegister", false);
     }
 
+    /**
+     * 收到推送时把框架界面拉到前台（需要“显示在其他应用上层”权限，否则会被系统拦截）。
+     */
+    public boolean isPullUpFrameworkOnPush(Context ctx) {
+        return getSharedPreferences(ctx).getBoolean("PullUpFrameworkOnPush", false);
+    }
+
     public boolean isShowConfigurationListOnLoaded(Context ctx) {
         return getSharedPreferences(ctx).getBoolean("ShowConfigurationListOnLoaded", false);
     }

@@ -102,6 +102,13 @@ private fun MiPushBlock() {
         ) {}
 
         SettingsItem(
+            title = stringResource(R.string.settings_pull_up_framework),
+            summary = stringResource(R.string.settings_pull_up_framework_summary),
+            key = "PullUpFrameworkOnPush",
+            defaultValue = false
+        ) {}
+
+        SettingsItem(
             title = stringResource(R.string.settings_zygisk),
             summary = when {
                 usable -> stringResource(R.string.settings_zygisk_summary_ready, snapshot!!.packages.size)
