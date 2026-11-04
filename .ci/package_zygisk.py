@@ -37,6 +37,15 @@ set_perm_recursive "$MODPATH" 0 0 0755 0644
 """.encode()
 
 entries["uninstall.sh"] = "#!/system/bin/sh\nrm -rf /data/adb/mipush_zygisk 2>/dev/null\nexit 0\n".encode()
+entries["post-fs-data.sh"] = """#!/system/bin/sh
+# expose module presence without root: a world-readable property + config copy
+CONFIG_DIR=/data/adb/mipush_zygisk
+resetprop -n mipush.zygisk.enabled true 2>/dev/null || setprop mipush.zygisk.enabled true
+if [ -f "$CONFIG_DIR/app.conf" ]; then
+  cat "$CONFIG_DIR/app.conf" > /data/local/tmp/mipush_zygisk_app.conf
+  chmod 644 /data/local/tmp/mipush_zygisk_app.conf
+fi
+""".encode()
 entries["defaults/app.conf"] = (src / "magisk/defaults/app.conf").read_bytes()
 
 device_conf = src / "magisk/defaults/device.conf"
