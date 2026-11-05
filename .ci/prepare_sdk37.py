@@ -60,6 +60,19 @@ def strip_library_variants(path):
         io.open(path, "w", encoding="utf-8", newline="").write(s2)
 
 
+def patch_buildconfig(path):
+    s = io.open(path, encoding="utf-8", newline="").read()
+    if "buildConfig true" in s:
+        return
+    s = re.sub(
+        r"android\s*\{",
+        "android {\n    buildFeatures {\n        buildConfig true\n    }",
+        s,
+        count=1,
+    )
+    io.open(path, "w", encoding="utf-8", newline="").write(s)
+
+
 rw("build.gradle", patch_root)
 rw("push/build.gradle", patch_push)
 rw("gradle/wrapper/gradle-wrapper.properties", patch_wrapper)
@@ -70,6 +83,7 @@ for mod in ("push", "common", "condom", "mipush_hook"):
         rw(path, patch_proguard)
         patch_namespace(path)
         strip_library_variants(path)
+        patch_buildconfig(path)
     except OSError:
         pass
 
