@@ -31,6 +31,10 @@ def patch_push(s):
     s = re.sub(r"minSdkVersion\s+\d+", "minSdk 21", s)
     s = re.sub(r"\n\s*apply plugin: '[^']*aspectjx'", "", s)
     s = re.sub(r"\n\s*archivesBaseName\s*=.*", "", s)
+    s = s.replace("compileOnly files(project(':mipush_hook').ext.mipushLib)",
+                  'compileOnly files("../mipush_hook/libs/miuipushsdkshared_3_7_9.jar")')
+    s = s.replace("apply plugin: 'org.greenrobot.greendao'\n", "")
+    s = re.sub(r"greendao\s*\{.*?\n\}\n", "", s, flags=re.S)
     return s
 
 
