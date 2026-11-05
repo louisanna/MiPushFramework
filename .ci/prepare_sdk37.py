@@ -146,4 +146,18 @@ try:
 except OSError:
     pass
 
+
+def patch_link_dialog():
+    path = "common/src/main/java/top/trumeet/common/widget/LinkAlertDialog.java"
+    s = read(path)
+    s2 = re.sub(
+        r"\(int\) getContext\(\)\.getResources\(\)\s*\.getDimension\(R\.dimen\.abc_dialog_padding_material\)",
+        "(int) (24 * getContext().getResources().getDisplayMetrics().density)",
+        s,
+    )
+    if s2 != s:
+        write(path, s2)
+
+
+patch_link_dialog()
 print("prepared sdk37 tree")
