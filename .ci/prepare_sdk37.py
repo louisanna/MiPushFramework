@@ -55,6 +55,9 @@ def patch_root(s):
     s = re.sub(r"\n\s*apply plugin: '[^']*aspectjx'", "", s)
     s = re.sub(r"\n\s*maven \{ url = uri\([^\n]*aliyun[^\n]*\) \}", "", s)
     s = re.sub(r"\n\s*maven \{ url = uri\([^\n]*jitpack[^\n]*\) \}", "", s)
+    s = re.sub(r"\n\s*maven \{ url '[^']*jitpack[^']*' \}", "", s)
+    repo_block = "repositories {\n        google()\n        mavenCentral()\n        maven { url 'https://jitpack.io' }\n        gradlePluginPortal()\n    }"
+    s = re.sub(r"repositories\s*\{[^}]*\}", repo_block, s)
     s = remove_blocks(s, "aspectjx")
     s = remove_blocks(s, "greendao")
     return s
