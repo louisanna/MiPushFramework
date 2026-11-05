@@ -28,6 +28,7 @@ def patch_push(s):
     s = re.sub(r"targetSdkVersion\s+\d+", "targetSdk 37", s)
     s = re.sub(r"minSdkVersion\s+\d+", "minSdk 21", s)
     s = re.sub(r"\n\s*apply plugin: '[^']*aspectjx'", "", s)
+    s = re.sub(r"\n\s*archivesBaseName\s*=.*", "", s)
     return s
 
 
