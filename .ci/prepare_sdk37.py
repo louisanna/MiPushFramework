@@ -85,6 +85,7 @@ def patch_kts(path):
     s = s.replace('    id("io.github.wurensen.android-aspectjx")\n', "")
     s = s.replace('    id("org.jetbrains.kotlin.android")\n', "")
     s = re.sub(r"\n\s*aspectjx\s*\{.*?\n\s*\}\n", "\n", s, flags=re.S)
+    s = re.sub(r"\n\s*kotlinOptions\s*\{.*?\n\s*\}\n", "\n", s, flags=re.S)
     s = re.sub(r"compileSdk\s*=\s*\d+", "compileSdk = 37", s)
     io.open(path, "w", encoding="utf-8", newline="").write(s)
 
