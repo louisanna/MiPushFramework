@@ -97,6 +97,8 @@ def patch_kotlin_plugin(path):
     s = io.open(path, encoding="utf-8", newline="").read()
     s = s.replace("apply plugin: 'kotlin-android'\n", "")
     s = s.replace("apply plugin: 'org.jetbrains.kotlin.android'\n", "")
+    s = re.sub(r"\n\s*apply plugin: '[^']*aspectjx'", "", s)
+    s = re.sub(r"\n\s*aspectjx\s*\{.*?\n\s*\}\n", "\n", s, flags=re.S)
     io.open(path, "w", encoding="utf-8", newline="").write(s)
 
 
