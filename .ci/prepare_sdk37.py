@@ -80,6 +80,14 @@ def patch_classifier(path):
         io.open(path, "w", encoding="utf-8", newline="").write(s2)
 
 
+def patch_kts(path):
+    s = io.open(path, encoding="utf-8", newline="").read()
+    s = s.replace('    id("io.github.wurensen.android-aspectjx")\n', "")
+    s = re.sub(r"\n\s*aspectjx\s*\{.*?\n\s*\}\n", "\n", s, flags=re.S)
+    s = re.sub(r"compileSdk\s*=\s*\d+", "compileSdk = 37", s)
+    io.open(path, "w", encoding="utf-8", newline="").write(s)
+
+
 rw("build.gradle", patch_root)
 rw("push/build.gradle", patch_push)
 rw("gradle/wrapper/gradle-wrapper.properties", patch_wrapper)
@@ -92,6 +100,12 @@ for mod in ("push", "common", "condom", "mipush_hook"):
         strip_library_variants(path)
         patch_buildconfig(path)
         patch_classifier(path)
+    except OSError:
+        pass
+
+for kts in ("mipush_hook/build.gradle.kts",):
+    try:
+        patch_kts(kts)
     except OSError:
         pass
 
