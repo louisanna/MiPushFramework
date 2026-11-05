@@ -53,6 +53,13 @@ def patch_namespace(path):
     io.open(path, "w", encoding="utf-8", newline="").write(s)
 
 
+def strip_library_variants(path):
+    s = io.open(path, encoding="utf-8", newline="").read()
+    s2 = re.sub(r"android\.libraryVariants\.all\s*\{.*?\n\}\n", "", s, flags=re.S)
+    if s2 != s:
+        io.open(path, "w", encoding="utf-8", newline="").write(s2)
+
+
 rw("build.gradle", patch_root)
 rw("push/build.gradle", patch_push)
 rw("gradle/wrapper/gradle-wrapper.properties", patch_wrapper)
@@ -62,6 +69,7 @@ for mod in ("push", "common", "condom", "mipush_hook"):
     try:
         rw(path, patch_proguard)
         patch_namespace(path)
+        strip_library_variants(path)
     except OSError:
         pass
 
