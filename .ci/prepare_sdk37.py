@@ -20,6 +20,8 @@ def patch_root(s):
     s = s.replace("classpath 'io.github.wurensen:gradle-android-plugin-aspectjx:3.3.2'\n", "")
     s = re.sub(r"apply plugin: 'io\.github\.wurensen\.android-aspectjx'\n", "", s)
     s = re.sub(r"aspectjx\s*\{.*?\n\}\n", "", s, flags=re.S)
+    s = re.sub(r"\n\s*maven \{ url = uri\([^\n]*aliyun[^\n]*\) \}", "", s)
+    s = re.sub(r"\n\s*maven \{ url = uri\([^\n]*jitpack[^\n]*\) \}", "", s)
     return s
 
 
