@@ -83,8 +83,16 @@ def patch_classifier(path):
 def patch_kts(path):
     s = io.open(path, encoding="utf-8", newline="").read()
     s = s.replace('    id("io.github.wurensen.android-aspectjx")\n', "")
+    s = s.replace('    id("org.jetbrains.kotlin.android")\n', "")
     s = re.sub(r"\n\s*aspectjx\s*\{.*?\n\s*\}\n", "\n", s, flags=re.S)
     s = re.sub(r"compileSdk\s*=\s*\d+", "compileSdk = 37", s)
+    io.open(path, "w", encoding="utf-8", newline="").write(s)
+
+
+def patch_kotlin_plugin(path):
+    s = io.open(path, encoding="utf-8", newline="").read()
+    s = s.replace("apply plugin: 'kotlin-android'\n", "")
+    s = s.replace("apply plugin: 'org.jetbrains.kotlin.android'\n", "")
     io.open(path, "w", encoding="utf-8", newline="").write(s)
 
 
@@ -100,6 +108,7 @@ for mod in ("push", "common", "condom", "mipush_hook"):
         strip_library_variants(path)
         patch_buildconfig(path)
         patch_classifier(path)
+        patch_kotlin_plugin(path)
     except OSError:
         pass
 
