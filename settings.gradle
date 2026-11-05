@@ -1,3 +1,4 @@
 include  ':condom', ':push', ':common'
 include ':mipush_hook'
 include ':connector-api'
+include ':connector'
