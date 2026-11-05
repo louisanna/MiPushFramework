@@ -3,12 +3,43 @@
 import io
 import re
 
-ROOT = "."
+
+def read(path):
+    return io.open(path, encoding="utf-8", newline="").read()
 
 
-def rw(path, fn):
-    s = io.open(path, encoding="utf-8", newline="").read()
-    io.open(path, "w", encoding="utf-8", newline="").write(fn(s))
+def write(path, s):
+    io.open(path, "w", encoding="utf-8", newline="").write(s)
+
+
+def remove_blocks(s, keyword):
+    """Remove `keyword { ... }` blocks with brace matching (handles nesting)."""
+    out = []
+    i = 0
+    while True:
+        m = re.search(r"\b" + keyword + r"\s*\{", s[i:])
+        if not m:
+            out.append(s[i:])
+            break
+        start = i + m.start()
+        brace = i + m.end() - 1
+        depth = 0
+        j = brace
+        while j < len(s):
+            if s[j] == "{":
+                depth += 1
+            elif s[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        # drop trailing newline too
+        end = j + 1
+        while end < len(s) and s[end] in "\r\n":
+            end += 1
+        out.append(s[i:start])
+        i = end
+    return "".join(out)
 
 
 def patch_root(s):
@@ -18,117 +49,76 @@ def patch_root(s):
     )
     s = s.replace("ext.kotlin_version = '1.8.0'", "ext.kotlin_version = '2.5.0-Beta2'")
     s = s.replace("classpath 'io.github.wurensen:gradle-android-plugin-aspectjx:3.3.2'\n", "")
-    s = re.sub(r"apply plugin: 'io\.github\.wurensen\.android-aspectjx'\n", "", s)
-    s = re.sub(r"aspectjx\s*\{.*?\n\}\n", "", s, flags=re.S)
+    s = s.replace("classpath 'org.greenrobot:greendao-gradle-plugin:3.3.0'\n", "")
+    s = re.sub(r"\n\s*apply plugin: '[^']*aspectjx'", "", s)
     s = re.sub(r"\n\s*maven \{ url = uri\([^\n]*aliyun[^\n]*\) \}", "", s)
     s = re.sub(r"\n\s*maven \{ url = uri\([^\n]*jitpack[^\n]*\) \}", "", s)
+    s = remove_blocks(s, "aspectjx")
+    s = remove_blocks(s, "greendao")
     return s
 
 
-def patch_push(s):
+def patch_module(s):
     s = re.sub(r"compileSdkVersion\s+\d+", "compileSdk 37", s)
     s = re.sub(r"targetSdkVersion\s+\d+", "targetSdk 37", s)
     s = re.sub(r"minSdkVersion\s+\d+", "minSdk 21", s)
     s = re.sub(r"\n\s*apply plugin: '[^']*aspectjx'", "", s)
+    s = re.sub(r"\n\s*apply plugin: 'org.greenrobot.greendao'", "", s)
+    s = s.replace("apply plugin: 'kotlin-android'\n", "")
+    s = s.replace("apply plugin: 'org.jetbrains.kotlin.android'\n", "")
+    s = s.replace("proguard-android.txt", "proguard-android-optimize.txt")
+    s = re.sub(r"\bclassifier\s*=", "archiveClassifier =", s)
     s = re.sub(r"\n\s*archivesBaseName\s*=.*", "", s)
     s = s.replace("compileOnly files(project(':mipush_hook').ext.mipushLib)",
                   'compileOnly files("../mipush_hook/libs/miuipushsdkshared_3_7_9.jar")')
-    s = s.replace("apply plugin: 'org.greenrobot.greendao'\n", "")
-    s = re.sub(r"greendao\s*\{.*?\n\}\n", "", s, flags=re.S)
+    s = remove_blocks(s, "aspectjx")
+    s = remove_blocks(s, "greendao")
+    s = remove_blocks(s, "libraryVariants")
+    s = remove_blocks(s, "applicationVariants")
     return s
 
 
-def patch_wrapper(s):
-    return re.sub(r"gradle-[0-9.]+-bin\.zip", "gradle-9.8.2-bin.zip", s)
-
-
-def patch_proguard(s):
-    return s.replace("proguard-android.txt", "proguard-android-optimize.txt")
-
-
-def patch_namespace(path):
-    s = io.open(path, encoding="utf-8", newline="").read()
-    if "namespace " in s:
-        return
-    manifest = path.replace("build.gradle", "src/main/AndroidManifest.xml")
-    try:
-        mf = io.open(manifest, encoding="utf-8").read()
-    except OSError:
-        return
-    m = re.search(r'package="([^"]+)"', mf)
-    if not m:
-        return
-    s = re.sub(r"android\s*\{", "android {\n    namespace '" + m.group(1) + "'", s, count=1)
-    io.open(path, "w", encoding="utf-8", newline="").write(s)
-
-
-def strip_library_variants(path):
-    s = io.open(path, encoding="utf-8", newline="").read()
-    s2 = re.sub(r"android\.libraryVariants\.all\s*\{.*?\n\}\n", "", s, flags=re.S)
-    if s2 != s:
-        io.open(path, "w", encoding="utf-8", newline="").write(s2)
-
-
-def patch_buildconfig(path):
-    s = io.open(path, encoding="utf-8", newline="").read()
-    if "buildConfig true" in s:
-        return
-    s = re.sub(
-        r"android\s*\{",
-        "android {\n    buildFeatures {\n        buildConfig true\n    }",
-        s,
-        count=1,
-    )
-    io.open(path, "w", encoding="utf-8", newline="").write(s)
-
-
-def patch_classifier(path):
-    s = io.open(path, encoding="utf-8", newline="").read()
-    s2 = re.sub(r"\bclassifier\s*=", "archiveClassifier =", s)
-    if s2 != s:
-        io.open(path, "w", encoding="utf-8", newline="").write(s2)
+def add_namespace_and_buildconfig(path, s):
+    if "namespace " not in s:
+        manifest = path.replace("build.gradle", "src/main/AndroidManifest.xml")
+        try:
+            mf = read(manifest)
+        except OSError:
+            return s
+        m = re.search(r'package="([^"]+)"', mf)
+        if m:
+            s = re.sub(r"android\s*\{", "android {\n    namespace '" + m.group(1) + "'", s, count=1)
+    if "buildConfig true" not in s:
+        s = re.sub(r"android\s*\{", "android {\n    buildFeatures {\n        buildConfig true\n    }", s, count=1)
+    return s
 
 
 def patch_kts(path):
-    s = io.open(path, encoding="utf-8", newline="").read()
+    s = read(path)
     s = s.replace('    id("io.github.wurensen.android-aspectjx")\n', "")
     s = s.replace('    id("org.jetbrains.kotlin.android")\n', "")
-    s = re.sub(r"\n\s*aspectjx\s*\{.*?\n\s*\}\n", "\n", s, flags=re.S)
-    s = re.sub(r"\n\s*kotlinOptions\s*\{.*?\n\s*\}\n", "\n", s, flags=re.S)
+    s = remove_blocks(s, "aspectjx")
+    s = remove_blocks(s, "kotlinOptions")
     s = re.sub(r"compileSdk\s*=\s*\d+", "compileSdk = 37", s)
-    io.open(path, "w", encoding="utf-8", newline="").write(s)
+    write(path, s)
 
 
-def patch_kotlin_plugin(path):
-    s = io.open(path, encoding="utf-8", newline="").read()
-    s = s.replace("apply plugin: 'kotlin-android'\n", "")
-    s = s.replace("apply plugin: 'org.jetbrains.kotlin.android'\n", "")
-    s = re.sub(r"\n\s*apply plugin: '[^']*aspectjx'", "", s)
-    s = re.sub(r"\n\s*aspectjx\s*\{.*?\n\s*\}\n", "\n", s, flags=re.S)
-    s = re.sub(r"android\.applicationVariants\.all\s*\{.*?\n\}", "", s, flags=re.S)
-    io.open(path, "w", encoding="utf-8", newline="").write(s)
-
-
-rw("build.gradle", patch_root)
-rw("push/build.gradle", patch_push)
-rw("gradle/wrapper/gradle-wrapper.properties", patch_wrapper)
+write("build.gradle", patch_root(read("build.gradle")))
+write("gradle/wrapper/gradle-wrapper.properties",
+      re.sub(r"gradle-[0-9.]+-bin\.zip", "gradle-9.8.2-bin.zip", read("gradle/wrapper/gradle-wrapper.properties")))
 
 for mod in ("push", "common", "condom", "mipush_hook"):
     path = mod + "/build.gradle"
     try:
-        rw(path, patch_proguard)
-        patch_namespace(path)
-        strip_library_variants(path)
-        patch_buildconfig(path)
-        patch_classifier(path)
-        patch_kotlin_plugin(path)
+        s = patch_module(read(path))
+        s = add_namespace_and_buildconfig(path, s)
+        write(path, s)
     except OSError:
         pass
 
-for kts in ("mipush_hook/build.gradle.kts",):
-    try:
-        patch_kts(kts)
-    except OSError:
-        pass
+try:
+    patch_kts("mipush_hook/build.gradle.kts")
+except OSError:
+    pass
 
 print("prepared sdk37 tree")
