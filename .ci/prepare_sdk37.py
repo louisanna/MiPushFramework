@@ -73,10 +73,8 @@ def patch_module(s):
                   'compileOnly files("../mipush_hook/libs/miuipushsdkshared_3_7_9.jar")')
     s = remove_blocks(s, "aspectjx")
     s = remove_blocks(s, "greendao")
-    s = remove_blocks(s, r"libraryVariants\.all")
-    s = remove_blocks(s, r"applicationVariants\.all")
-    s = remove_blocks(s, "libraryVariants")
-    s = remove_blocks(s, "applicationVariants")
+    s = remove_blocks(s, r"android\.libraryVariants\.all")
+    s = remove_blocks(s, r"android\.applicationVariants\.all")
     return s
 
 
