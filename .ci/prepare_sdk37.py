@@ -80,6 +80,13 @@ def patch_module(s):
     if "composeOptions" in s:
         s = remove_blocks(s, "composeOptions")
         s = "apply plugin: 'org.jetbrains.kotlin.plugin.compose'\n" + s
+        s += """
+androidComponents {
+    beforeVariants(selector().all()) { variantBuilder ->
+        variantBuilder.enableUnitTest = true
+    }
+}
+"""
     return s
 
 
