@@ -95,6 +95,13 @@ def add_namespace_and_buildconfig(path, s):
             s = re.sub(r"android\s*\{", "android {\n    namespace '" + m.group(1) + "'", s, count=1)
     if "buildConfig true" not in s:
         s = re.sub(r"android\s*\{", "android {\n    buildFeatures {\n        buildConfig true\n    }", s, count=1)
+    if "includeAndroidResources" not in s:
+        s = re.sub(
+            r"android\s*\{",
+            "android {\n    testOptions {\n        unitTests {\n            includeAndroidResources = true\n        }\n    }",
+            s,
+            count=1,
+        )
     return s
 
 
