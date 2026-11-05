@@ -125,6 +125,7 @@ def patch_kts(path):
     s = remove_blocks(s, "aspectjx")
     s = remove_blocks(s, "kotlinOptions")
     s = re.sub(r"compileSdk\s*=\s*\d+", "compileSdk = 37", s)
+    s += '\ndependencies {\n    implementation("org.aspectj:aspectjrt:1.9.22")\n}\n'
     write(path, s)
 
 
