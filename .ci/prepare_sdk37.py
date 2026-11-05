@@ -56,10 +56,13 @@ def patch_root(s):
     s = re.sub(r"\n\s*maven \{ url = uri\([^\n]*aliyun[^\n]*\) \}", "", s)
     s = re.sub(r"\n\s*maven \{ url = uri\([^\n]*jitpack[^\n]*\) \}", "", s)
     s = re.sub(r"\n\s*maven \{ url '[^']*jitpack[^']*' \}", "", s)
-    repo_block = ("repositories {\n        google()\n        mavenCentral()\n"
-                  "        maven { url 'https://jitpack.io' }\n"
+    repo_block = ("repositories {\n"
+                  "        maven { url 'https://maven.aliyun.com/repository/google' }\n"
                   "        maven { url 'https://maven.aliyun.com/repository/public' }\n"
-                  "        gradlePluginPortal()\n    }")
+                  "        mavenCentral()\n"
+                  "        google()\n"
+                  "        maven { url 'https://jitpack.io' }\n"
+                  "    }")
     s = re.sub(r"repositories\s*\{[^}]*\}", repo_block, s)
     s = remove_blocks(s, "aspectjx")
     s = remove_blocks(s, "greendao")
@@ -67,8 +70,11 @@ def patch_root(s):
 
 
 def patch_module(s):
+    s = s.replace("compileSdkVersion rootProject.ext.compileSdkVersion", "compileSdk 37")
+    s = s.replace("targetSdkVersion rootProject.ext.targetSdkVersion", "targetSdk 30")
+    s = s.replace("minSdkVersion rootProject.ext.minSdkVersion", "minSdk 21")
     s = re.sub(r"compileSdkVersion\s+\d+", "compileSdk 37", s)
-    s = re.sub(r"targetSdkVersion\s+\d+", "targetSdk 37", s)
+    s = re.sub(r"targetSdkVersion\s+\d+", "targetSdk 30", s)
     s = re.sub(r"minSdkVersion\s+\d+", "minSdk 21", s)
     s = re.sub(r"\n\s*apply plugin: '[^']*aspectjx'", "", s)
     s = re.sub(r"\n\s*apply plugin: 'org.greenrobot.greendao'", "", s)
@@ -78,7 +84,7 @@ def patch_module(s):
     s = re.sub(r"\bclassifier\s*=", "archiveClassifier =", s)
     s = re.sub(r"\n\s*archivesBaseName\s*=.*", "", s)
     s = s.replace("compileOnly files(project(':mipush_hook').ext.mipushLib)",
-                  'compileOnly files("../mipush_hook/libs/miuipushsdkshared_3_7_9.jar")')
+                  'implementation files("../mipush_hook/libs/miuipushsdkshared_3_7_9.jar")')
     s = remove_blocks(s, "aspectjx")
     s = remove_blocks(s, "greendao")
     s = remove_blocks(s, r"android\.libraryVariants\.all")
@@ -161,4 +167,89 @@ def patch_link_dialog():
 
 
 patch_link_dialog()
+
+# 璁?:push 鐨?R 鍖呭惈渚濊禆妯″潡锛坈ommon锛夌殑璧勬簮锛氭棫 AGP 榛樿 false锛孉GP 8+ 榛樿 true
+props_path = "gradle.properties"
+props = read(props_path) if __import__("os").path.exists(props_path) else ""
+if "nonTransitiveRClass" not in props:
+    props += "\nandroid.nonTransitiveRClass=false\n"
+    write(props_path, props)
+
+def patch_manifest():
+    path = "push/src/main/AndroidManifest.xml"
+    import xml.etree.ElementTree as ET
+    ns = "http://schemas.android.com/apk/res/android"
+    ET.register_namespace("android", ns)
+    tree = ET.parse(path)
+    root = tree.getroot()
+    changed = False
+    for tag in ("activity", "service", "receiver"):
+        for el in root.iter(tag):
+            if el.find("intent-filter") is None:
+                continue
+            key = "{%s}exported" % ns
+            if key not in el.attrib:
+                el.set(key, "true")
+                changed = True
+    if changed:
+        pass
+    # 渚濊禆搴擄紙icebox sdk锛夌殑 receiver 娌℃湁 exported锛宼argetSdk 31+ 浼氳 manifest merger 鎷掔粷
+    tools_ns = "http://schemas.android.com/tools"
+    ET.register_namespace("tools", tools_ns)
+    app = root.find("application")
+    if app is not None:
+        name = "com.catchingnow.icebox.sdk_client.StateReceiver"
+        exists = any(el.get("{%s}name" % ns) == name for el in app.findall("receiver"))
+        if not exists:
+            rec = ET.SubElement(app, "receiver")
+            rec.set("{%s}name" % ns, name)
+            rec.set("{%s}exported" % ns, "true")
+            rec.set("{%s}node" % tools_ns, "merge")
+            changed = True
+    if changed:
+        tree.write(path, encoding="utf-8", xml_declaration=True)
+
+
+patch_manifest()
+
+push_path = "push/build.gradle"
+push = read(push_path)
+if "androidx.compose.foundation:foundation" not in push:
+    push += ('\ndependencies {\n'
+             '    implementation "androidx.compose.foundation:foundation:1.4.0"\n'
+             '    implementation "org.aspectj:aspectjrt:1.9.22"\n'
+             '}\n')
+    write(push_path, push)
+
+zygisk = "push/src/main/java/top/trumeet/mipushframework/utils/ZygiskDb.kt"
+if __import__("os").path.exists(zygisk):
+    zs = read(zygisk)
+    zs2 = zs.replace("arrayOf(pkg, profile, now)", "arrayOf<Any?>(pkg, profile, now)")
+    if zs2 != zs:
+        write(zygisk, zs2)
+
 print("prepared sdk37 tree")
+import shutil
+_generated = "push/build/generated/source/greendao"
+if __import__("os").path.isdir(_generated):
+    shutil.copytree(_generated, "push/src/main/java", dirs_exist_ok=True)
+    print("copied generated greendao sources")
+
+def patch_fgs():
+    path = "push/src/main/java/com/nihility/service/ForegroundHelper.java"
+    s = read(path)
+    old = """        if (Global.ConfigCenter().isStartForegroundService()) {
+            showForegroundNotificationToKeepAlive();
+        } else {
+            stopForegroundNotification();
+        }"""
+    new = """        showForegroundNotificationToKeepAlive();
+        if (!Global.ConfigCenter().isStartForegroundService()) {
+            stopForegroundNotification();
+        }"""
+    if old in s:
+        write(path, s.replace(old, new))
+        print("patched FGS fallback")
+
+
+patch_fgs()
