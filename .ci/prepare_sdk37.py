@@ -47,8 +47,9 @@ def patch_root(s):
         "classpath 'com.android.tools.build:gradle:7.4.2'",
         "classpath 'com.android.tools.build:gradle:9.5.0'",
     )
-    s = s.replace("ext.kotlin_version = '1.8.0'",
-                  "ext.kotlin_version = '2.5.0-Beta2'\n        classpath \"org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version\"")
+    s = s.replace("ext.kotlin_version = '1.8.0'", "ext.kotlin_version = '2.5.0-Beta2'")
+    s = s.replace('classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"',
+                  'classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"\n        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"')
     s = s.replace("classpath 'io.github.wurensen:gradle-android-plugin-aspectjx:3.3.2'\n", "")
     s = s.replace("classpath 'org.greenrobot:greendao-gradle-plugin:3.3.0'\n", "")
     s = re.sub(r"\n\s*apply plugin: '[^']*aspectjx'", "", s)
