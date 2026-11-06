@@ -283,7 +283,7 @@ def patch_bridge_service():
         print("patched bridge service start (no FGS)")
 
 
-patch_bridge_service()
+# patch_bridge_service()
 
 def patch_foreground_starters():
     files = [
@@ -305,7 +305,7 @@ def patch_foreground_starters():
     print("patched foreground starters:", changed)
 
 
-patch_foreground_starters()
+# patch_foreground_starters()
 
 
 def patch_bridge_foreground():
@@ -330,4 +330,32 @@ def patch_bridge_foreground():
     print("patched bridge foreground")
 
 
-patch_bridge_foreground()
+# patch_bridge_foreground()
+
+def add_fgs_compat():
+    path = "push/src/main/java/com/xiaomi/xmsf/push/service/FgsCompat.java"
+    content = """package com.xiaomi.xmsf.push.service;
+
+import android.app.Service;
+
+/**
+ * 由 ASM 注入到 SDK XMPushService.onStartCommand 开头，
+ * 保证被 startForegroundService 拉起时 5 秒内调用 startForeground。
+ */
+public final class FgsCompat {
+    private FgsCompat() {
+    }
+
+    public static void ensure(Service service) {
+        try {
+            new com.nihility.service.ForegroundHelper(service).startForeground();
+        } catch (Throwable ignored) {
+        }
+    }
+}
+"""
+    write(path, content)
+    print("added FgsCompat")
+
+
+add_fgs_compat()
