@@ -359,3 +359,64 @@ public final class FgsCompat {
 
 
 add_fgs_compat()
+
+# --- targetSdk 33+ 通知所需：权限、Hook provider、PendingIntent flags、aspects jar ---
+
+def patch_notification_permission():
+    path = "push/src/main/AndroidManifest.xml"
+    s = read(path)
+    if "POST_NOTIFICATIONS" not in s:
+        s = s.replace("</manifest>",
+                      '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>')
+        write(path, s)
+    if 'name="Hook"' not in s:
+        block = """
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data android:name="Hook" android:value="androidx.startup" />
+        </provider>
+"""
+        s = read(path).replace("    </application>", block + "    </application>")
+        write(path, s)
+    print("notification manifest patched")
+
+
+def patch_pending_intent_flags():
+    files = [
+        "push/src/main/java/com/xiaomi/push/service/MyMIPushNotificationHelper.java",
+        "push/src/main/java/com/xiaomi/xmsf/push/notification/NotificationController.java",
+        "push/src/main/java/com/xiaomi/xmsf/MiPushFrameworkApp.java",
+    ]
+    for path in files:
+        s = read(path)
+        s2 = s.replace("PendingIntent.FLAG_UPDATE_CURRENT",
+                       "PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE")
+        s2 = s2.replace("PendingIntent.FLAG_NO_CREATE",
+                        "PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE")
+        if s2 != s:
+            write(path, s2)
+    kt = "push/src/main/java/com/xiaomi/push/revival/NotificationsRevivalForSelfUpdated.kt"
+    s = read(kt)
+    s2 = s.replace("FLAG_UPDATE_CURRENT)", "FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)")
+    s2 = s2.replace("FLAG_NO_CREATE)", "FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)")
+    if s2 != s:
+        write(kt, s2)
+    print("pending intent flags patched")
+
+
+def patch_aspects_dependency():
+    path = "push/build.gradle"
+    s = read(path)
+    s2 = s.replace("implementation project(':mipush_hook')",
+                   'implementation files("../mipush_hook/libs/mipush_hook_aspects.jar")')
+    if s2 != s:
+        write(path, s2)
+    print("aspects jar dependency patched")
+
+
+patch_notification_permission()
+patch_pending_intent_flags()
+patch_aspects_dependency()
