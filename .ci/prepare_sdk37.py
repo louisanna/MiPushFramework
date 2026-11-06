@@ -206,6 +206,25 @@ def patch_manifest():
             rec.set("{%s}exported" % ns, "true")
             rec.set("{%s}node" % tools_ns, "merge")
             changed = True
+
+        # targetSdk 34+：startForeground 必须声明类型
+        for svc in app.findall("service"):
+            svc_name = svc.get("{%s}name" % ns)
+            if svc_name in (".push.service.XMPushService",
+                            "com.xiaomi.push.service.XMPushService"):
+                if "{%s}foregroundServiceType" % ns not in svc.attrib:
+                    svc.set("{%s}foregroundServiceType" % ns, "dataSync")
+                    changed = True
+
+    for perm in ("android.permission.FOREGROUND_SERVICE",
+                 "android.permission.FOREGROUND_SERVICE_DATA_SYNC"):
+        existing = [el for el in root.findall("uses-permission")
+                    if el.get("{%s}name" % ns) == perm]
+        if not existing:
+            el = ET.Element("uses-permission")
+            el.set("{%s}name" % ns, perm)
+            root.append(el)
+            changed = True
     if changed:
         tree.write(path, encoding="utf-8", xml_declaration=True)
 
@@ -253,3 +272,62 @@ def patch_fgs():
 
 
 patch_fgs()
+
+def patch_bridge_service():
+    path = "push/src/main/java/com/xiaomi/xmsf/push/service/XMPushService.java"
+    s = read(path)
+    old = "        ContextCompat.startForegroundService(this, intent2);"
+    new = "        startService(intent2);"
+    if old in s:
+        write(path, s.replace(old, new))
+        print("patched bridge service start (no FGS)")
+
+
+patch_bridge_service()
+
+def patch_foreground_starters():
+    files = [
+        "push/src/main/java/com/xiaomi/xmsf/push/service/receivers/KeepAliveReceiver.java",
+        "push/src/main/java/com/xiaomi/xmsf/push/service/receivers/MiPushPingReceiver.java",
+        "push/src/main/java/com/xiaomi/xmsf/push/service/receivers/NetworkStatusReceiver.java",
+        "push/src/main/java/com/xiaomi/xmsf/push/service/receivers/PkgUninstallReceiver.java",
+        "push/src/main/java/com/xiaomi/xmsf/push/control/PushControllerUtils.java",
+    ]
+    old_target = "com.xiaomi.push.service.XMPushService.class"
+    new_target = "com.xiaomi.xmsf.push.service.XMPushService.class"
+    changed = 0
+    for path in files:
+        s = read(path)
+        s2 = s.replace(old_target, new_target)
+        if s2 != s:
+            write(path, s2)
+            changed += 1
+    print("patched foreground starters:", changed)
+
+
+patch_foreground_starters()
+
+
+def patch_bridge_foreground():
+    path = "push/src/main/java/com/xiaomi/xmsf/push/service/XMPushService.java"
+    s = read(path)
+    if "onStartCommand" in s:
+        return
+    s = s.replace(
+        "import com.xiaomi.xmsf.utils.ConvertUtils;",
+        "import com.nihility.service.ForegroundHelper;\nimport com.xiaomi.xmsf.utils.ConvertUtils;",
+    )
+    s = s.replace(
+        "    @Override\n    protected void onHandleIntent(Intent intent) {",
+        "    @Override\n    public int onStartCommand(Intent intent, int flags, int startId) {\n"
+        "        // 被 startForegroundService 拉起时，必须在 5 秒内 startForeground\n"
+        "        new ForegroundHelper(this).startForeground();\n"
+        "        return super.onStartCommand(intent, flags, startId);\n"
+        "    }\n\n"
+        "    @Override\n    protected void onHandleIntent(Intent intent) {",
+    )
+    write(path, s)
+    print("patched bridge foreground")
+
+
+patch_bridge_foreground()
