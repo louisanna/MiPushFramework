@@ -31,6 +31,23 @@ public class PatchSDK {
                     ClassNode cn = new ClassNode();
                     cr.accept(cn, 0);
                     boolean changed = false;
+                    if ("com/xiaomi/push/service/XMPushService".equals(cn.name)) {
+                        for (MethodNode mn : cn.methods) {
+                            if ("onStartCommand".equals(mn.name)
+                                    && mn.desc.equals("(Landroid/content/Intent;II)I")) {
+                                InsnList head = new InsnList();
+                                head.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                head.add(new MethodInsnNode(
+                                        Opcodes.INVOKESTATIC,
+                                        "com/xiaomi/xmsf/push/service/FgsCompat",
+                                        "ensure",
+                                        "(Landroid/app/Service;)V",
+                                        false));
+                                mn.instructions.insert(head);
+                                changed = true;
+                            }
+                        }
+                    }
                     for (MethodNode mn : cn.methods) {
                         for (AbstractInsnNode insn : mn.instructions) {
                             if (insn instanceof MethodInsnNode) {
