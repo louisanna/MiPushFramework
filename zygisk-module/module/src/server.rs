@@ -1,5 +1,4 @@
 use std::{
-    fs,
     io::{self, BufRead, BufReader, Write},
     os::unix::net::UnixStream,
     sync::Once,
@@ -55,15 +54,7 @@ fn check_config(package_name: &str, process_name: &str) -> io::Result<bool> {
         Err(err) => debug!("read database failed: {err}"),
     }
 
-    let content = match fs::read_to_string(crate::config::CONFIG_PATH) {
-        Ok(content) => content,
-        Err(err) if err.kind() == io::ErrorKind::NotFound => return Ok(false),
-        Err(err) => return Err(err),
-    };
-
-    Ok(content
-        .lines()
-        .any(|line| matches_line(line, package_name, process_name)))
+    Ok(false)
 }
 
 /// 返回 Ok(None) 表示数据库不可用（不存在/没有表），交给 app.conf 回退。
