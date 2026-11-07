@@ -8,7 +8,7 @@ import android.net.Uri;
 
 import com.nihility.Global;
 import com.xiaomi.xmsf.BuildConfig;
-import com.xiaomi.xmsf.push.service.XMPushService;
+import com.xiaomi.xmsf.connector.ConnectorPushService;
 import com.xiaomi.xmsf.push.utils.Configurations;
 
 import top.trumeet.common.Constants;
@@ -100,7 +100,7 @@ public class ConfigCenter {
         Global.IconConfigurations().init(context,
                 Global.ConfigCenter().getConfigurationDirectory(context));
         Intent intent = new Intent();
-        intent.setComponent(new ComponentName(context, XMPushService.class));
+        intent.setComponent(new ComponentName(context, ConnectorPushService.class));
         intent.setAction(Constants.CONFIGURATIONS_UPDATE_ACTION);
         context.startService(intent);
     }
