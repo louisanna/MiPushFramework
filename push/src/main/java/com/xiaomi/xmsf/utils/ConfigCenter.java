@@ -57,9 +57,6 @@ public class ConfigCenter {
         return Integer.valueOf(mode);
     }
 
-    public boolean isIceboxSupported(Context ctx) {
-        return getSharedPreferences(ctx).getBoolean("IceboxSupported", false);
-    }
 
     public Uri getConfigurationDirectory(Context ctx) {
         String uri = getSharedPreferences(ctx).getString("ConfigurationDirectory", null);
