@@ -60,8 +60,6 @@
         <receiver android:name="com.xiaomi.push.revival.NotificationsRevivalForSelfUpdated" />
 
         <service android:name=".push.service.HttpService" android:exported="true" android:process=":connector" />
-
-        <service android:name=".push.service.XMPushService" android:exported="true" android:process=":connector" android:foregroundServiceType="dataSync" />
         <service android:name="com.xiaomi.push.service.XMPushService" android:exported="true" android:process=":connector" android:foregroundServiceType="dataSync" />
 
 
