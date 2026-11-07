@@ -52,12 +52,6 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/filepaths" />
         </provider>
 
-        <receiver android:name=".push.service.receivers.BootReceiver" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-
         <receiver android:name=".push.service.receivers.MiuiPushMessageReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="com.xiaomi.mipush.RECEIVE_MESSAGE" />
@@ -73,12 +67,6 @@
         <receiver android:name=".push.service.receivers.AccountChangedReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.accounts.LOGIN_ACCOUNTS_CHANGED" />
-            </intent-filter>
-        </receiver>
-
-        <receiver android:name=".push.service.receivers.NotificationEventReceiver" android:permission="com.xiaomi.xmsf.permission.NOTIFICATION_ACTIVE" android:exported="true">
-            <intent-filter>
-                <action android:name="com.xiaomi.xmsf.push.NOTIFICATION_ACTIVE" />
             </intent-filter>
         </receiver>
         <receiver android:name="com.xiaomi.push.service.SelfUpdateReceiver" android:exported="true">
