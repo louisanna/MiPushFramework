@@ -8,8 +8,8 @@ android {
         applicationId "com.xiaomi.xmsf"
         minSdk 21
         targetSdk 37
-        versionCode 10017
-        versionName "0.1.17"
+        versionCode 10200
+        versionName "0.2.0"
         ndk {
             abiFilters 'armeabi', 'armeabi-v7a', 'x86', "arm64-v8a", "x86_64"
         }
