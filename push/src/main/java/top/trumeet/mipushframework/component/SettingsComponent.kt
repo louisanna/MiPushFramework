@@ -48,6 +48,7 @@ fun SettingsItem(
     Row(
         Modifier
             .clickable(onClick = onClick, enabled = enabled)
+            .alpha(if (enabled) 1f else 0.38f)
             .fillMaxWidth()
             .padding(5.dp)
             .heightIn(min = 40.dp)
