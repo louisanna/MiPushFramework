@@ -81,16 +81,18 @@ class MainPage : ComponentActivity() {
         mainPageUtils1.initOnCreate(applicationContext) { placeholder = it.toString() }
         setContent {
             Theme {
-                val barColor = MaterialTheme.colorScheme.surface
-                window.statusBarColor = barColor.toArgb()
-                window.navigationBarColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                    NavigationBarDefaults.Elevation
-                ).toArgb()
+                val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                window.statusBarColor = android.graphics.Color.TRANSPARENT
+                window.navigationBarColor = android.graphics.Color.TRANSPARENT
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    window.isStatusBarContrastEnforced = false
+                    window.isNavigationBarContrastEnforced = false
+                }
                 val view = LocalView.current
                 android.os.Handler(android.os.Looper.getMainLooper()).post {
                     val controller = WindowCompat.getInsetsController(window, view)
-                    controller.isAppearanceLightStatusBars = barColor.luminance() > 0.5f
-                    controller.isAppearanceLightNavigationBars = barColor.luminance() > 0.5f
+                    controller.isAppearanceLightStatusBars = !dark
+                    controller.isAppearanceLightNavigationBars = !dark
                 }
             }
             Main(Screen.Apps.route.toString()) {
@@ -163,9 +165,10 @@ private fun Main(
         if (isLandscape) {
             Row(
                 Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
                     .statusBarsPadding()
                     .navigationBarsPadding()
-                    .fillMaxSize()
             ) {
                 SideNavigationRail(navController)
                 Column(Modifier.weight(1f)) {
@@ -179,9 +182,10 @@ private fun Main(
         } else {
             Column(
                 Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
                     .statusBarsPadding()
-                    .navigationBarsPadding()
-                    .fillMaxSize(),
+                    .navigationBarsPadding(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(Modifier.weight(1f)) {
