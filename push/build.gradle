@@ -1,5 +1,5 @@
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 
 android {
@@ -14,7 +14,6 @@ android {
     compileSdk 37
 
     defaultConfig {
-        applicationId "com.xiaomi.xmsf"
         minSdk 21
         // Keep alive
         targetSdk 37
@@ -26,8 +25,6 @@ android {
         // Fork 版本号重新编号：versionName 0.1.0 / versionCode 10017。
         // 10000 < 上游 0.3.11 的 1003003000，属于降级；从旧版升级必须先彻底移除旧包
         // （pm uninstall），让系统在重启后把这个 APK 当成全新安装来解析。
-        versionCode 10017
-        versionName "0.1.17"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
@@ -43,20 +40,6 @@ android {
             jvmArgs '-noverify'
         }
     }
-
-    flavorDimensions = ["version"]
-    productFlavors {
-        normal {
-            dimension "version"
-        }
-        vc105 {
-            dimension "version"
-            versionCode = 105
-        }
-        prebuilt {
-            dimension "version"
-        }
-    }
     androidComponents {
         onVariants(selector().all()) { variant ->
             if(variant.name.startsWith("prebuilt")) {
@@ -66,66 +49,10 @@ android {
     }
 
             namespace 'top.trumeet.mipush.provider'
-
-    signingConfigs {
-        debug {
-            v1SigningEnabled true
-            v2SigningEnabled true
-            enableV3Signing = true
-            enableV4Signing = true
-
-            def locale = project.rootProject.file(".yuuta.jks")
-            def keystorePwd = System.getenv("KEYSTORE_PASS")
-            def alias = System.getenv("ALIAS_NAME")
-            def pwd = System.getenv("ALIAS_PASS")
-            if (project.rootProject.file('local.properties').exists()) {
-                Properties properties = new Properties()
-                properties.load(project.rootProject.file('local.properties').newDataInputStream())
-                locale = properties.getProperty("KEY_LOCATE")
-                keystorePwd = properties.getProperty("KEYSTORE_PASSWORD")
-                alias = properties.getProperty("KEYSTORE_ALIAS")
-                pwd = properties.getProperty("KEY_PASSWORD")
-            }
-
-            if (locale != null) {
-                storeFile file(locale)
-                storePassword keystorePwd
-                keyAlias alias
-                keyPassword pwd
-            }
-        }
-
-        // Release 签名：优先读 local.properties / 环境变量，缺省用仓库根目录的 release.jks
-        release {
-            v1SigningEnabled true
-            v2SigningEnabled true
-            enableV3Signing = true
-
-            def storePath = System.getenv("RELEASE_STORE_FILE") ?: "release.jks"
-            def storePass = System.getenv("RELEASE_STORE_PASSWORD")
-            def keyAliasName = System.getenv("RELEASE_KEY_ALIAS")
-            def keyPass = System.getenv("RELEASE_KEY_PASSWORD")
-            if (project.rootProject.file('local.properties').exists()) {
-                Properties releaseProps = new Properties()
-                releaseProps.load(project.rootProject.file('local.properties').newDataInputStream())
-                storePath = releaseProps.getProperty("RELEASE_STORE_FILE", storePath)
-                storePass = releaseProps.getProperty("RELEASE_STORE_PASSWORD", storePass)
-                keyAliasName = releaseProps.getProperty("RELEASE_KEY_ALIAS", keyAliasName)
-                keyPass = releaseProps.getProperty("RELEASE_KEY_PASSWORD", keyPass)
-            }
-
-            storeFile project.rootProject.file(storePath)
-            storePassword storePass
-            keyAlias keyAliasName
-            keyPassword keyPass
-        }
-    }
     buildTypes {
         debug {
-            signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.release
             minifyEnabled false
             //shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
