@@ -1,0 +1,52 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'com.xiaomi.xmsf.shell'
+    compileSdk 37
+
+    defaultConfig {
+        applicationId "com.xiaomi.xmsf"
+        minSdk 21
+        targetSdk 37
+        versionCode 10017
+        versionName "0.1.17"
+        ndk {
+            abiFilters 'armeabi', 'armeabi-v7a', 'x86', "arm64-v8a", "x86_64"
+        }
+    }
+
+    signingConfigs {
+        release {
+            storeFile project.rootProject.file("release.jks")
+            storePassword "MiPush2026Release"
+            keyAlias "mipush"
+            keyPassword "MiPush2026Release"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+
+    buildFeatures {
+        buildConfig false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+dependencies {
+    api project(':push')
+    api project(':connector')
+    api project(':config')
+}
