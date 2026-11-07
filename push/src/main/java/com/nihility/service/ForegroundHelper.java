@@ -25,10 +25,12 @@ public class ForegroundHelper {
 
     public void startForeground() {
         createNotificationGroupForPushStatus();
-        if (Global.ConfigCenter().isStartForegroundService()) {
-            showForegroundNotificationToKeepAlive();
-        } else {
-            stopForegroundNotification();
+        showForegroundNotificationToKeepAlive();
+        if (!Global.ConfigCenter().isStartForegroundService()) {
+            // 被 startForegroundService 拉起后必须保持前台至少通过系统检查，
+            // 立即 stop 会触发 Stop FGS timeout，这里延迟 30 秒再移除通知。
+            new android.os.Handler(android.os.Looper.getMainLooper())
+                    .postDelayed(this::stopForegroundNotification, 30_000);
         }
     }
 
