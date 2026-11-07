@@ -27,5 +27,12 @@
             <intent-filter>
                 <action android:name="com.xiaomi.xmsf.push.NOTIFICATION_ACTIVE" />
             </intent-filter>
-        </receiver>    </application>
+        </receiver>        <service android:name=".MiuiPushActivateService" android:exported="true" />
+
+        <receiver android:name=".receivers.AccountChangedReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.accounts.LOGIN_ACCOUNTS_CHANGED" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>
