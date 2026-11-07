@@ -1,24 +1,25 @@
 CONFIG_DIR=/data/adb/mipush_zygisk
-CONFIG_FILE=$CONFIG_DIR/app.conf
-DEFAULT_CONFIG=$MODPATH/defaults/app.conf
+DB_FILE=$CONFIG_DIR/apps.db
+DEFAULT_DB=$MODPATH/defaults/apps.db
 
 mkdir -p "$CONFIG_DIR"
 chmod 700 "$CONFIG_DIR"
 
-if [ ! -f "$CONFIG_FILE" ]; then
-  if [ -f "$DEFAULT_CONFIG" ]; then
-    cp "$DEFAULT_CONFIG" "$CONFIG_FILE"
+if [ ! -f "$DB_FILE" ]; then
+  if [ -f "$DEFAULT_DB" ]; then
+    cp "$DEFAULT_DB" "$DB_FILE"
+    chmod 600 "$DB_FILE"
   else
-    cat > "$CONFIG_FILE" <<'EOF'
-# MiPush Zygisk config
-# Enable all processes of a package:
-# com.example.app
-#
-# Enable only one process:
-# com.example.app|com.example.app:push
-EOF
+    ui_print "!! defaults/apps.db missing, module will not spoof anything"
   fi
-  chmod 600 "$CONFIG_FILE"
 fi
 
-ui_print "MiPush Zygisk config: $CONFIG_FILE"
+# 清理历史遗留的 app.conf（新版本只读 apps.db）
+if [ -f "$CONFIG_DIR/app.conf" ]; then
+  rm -f "$CONFIG_DIR/app.conf"
+fi
+if [ -f /data/local/tmp/mipush_zygisk_app.conf ]; then
+  rm -f /data/local/tmp/mipush_zygisk_app.conf
+fi
+
+ui_print "MiPush Zygisk config: $DB_FILE"
