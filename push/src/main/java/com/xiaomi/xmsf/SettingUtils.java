@@ -14,7 +14,6 @@ import androidx.core.content.ContextCompat;
 
 import com.nihility.Global;
 import com.nihility.utils.RegistrationHelper;
-import com.catchingnow.icebox.sdk_client.IceBox;
 import com.nihility.InternalMessenger;
 import com.xiaomi.push.service.PushConstants;
 import com.xiaomi.push.service.PushServiceConstants;
@@ -33,16 +32,9 @@ import top.trumeet.mipush.provider.entities.RegisteredApplication;
 import top.trumeet.mipushframework.main.subpage.ApplicationPageOperation;
 
 public class SettingUtils {
-    public static final int requestIceBoxCode = 0x233;
     public static AtomicBoolean mClearingHistory = new AtomicBoolean(false);
 
-    public static void requestIceBoxPermission(Activity activity) {
-        ActivityCompat.requestPermissions(activity, new String[]{IceBox.SDK_PERMISSION}, requestIceBoxCode);
-    }
 
-    public static boolean iceBoxPermissionGranted(Context context) {
-        return ContextCompat.checkSelfPermission(context, IceBox.SDK_PERMISSION) == PackageManager.PERMISSION_GRANTED;
-    }
 
     public static void clearLog(Context context) {
         Toast.makeText(context, context.getString(R.string.settings_clear_log) + " " + context.getString(R.string.start), Toast.LENGTH_SHORT).show();
@@ -73,9 +65,6 @@ public class SettingUtils {
         NotificationController.test(context, packageName, title, description);
     }
 
-    public static boolean isIceBoxInstalled() {
-        return Utils.isAppInstalled(IceBox.PACKAGE_NAME);
-    }
 
     public static void tryForceRegisterAllApplications() {
         ApplicationPageOperation.MiPushApplications miPushApplications =
