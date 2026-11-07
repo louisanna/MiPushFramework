@@ -51,6 +51,7 @@ public class MiPushFrameworkApp extends Application {
 
     @Override
     public void onCreate() {
+        com.xiaomi.xmsf.config.ConfigEnv.set(new com.xiaomi.xmsf.config.PushConfigEnvironment());
         super.onCreate();
 
         PrivilegeElevator.tryToElevate();
