@@ -44,5 +44,6 @@
             <intent-filter>
                 <action android:name="com.xiaomi.mipush.ERROR" />
             </intent-filter>
-        </receiver>    </application>
+        </receiver>        <service android:name=".ConnectorPushService" android:exported="true" android:process=":connector" android:foregroundServiceType="dataSync" />
+    </application>
 </manifest>
