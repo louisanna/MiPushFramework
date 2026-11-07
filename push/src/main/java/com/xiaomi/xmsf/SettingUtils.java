@@ -66,7 +66,7 @@ public class SettingUtils {
     }
 
     public static void notifyMockNotification(Context context) {
-        String packageName = BuildConfig.APPLICATION_ID;
+        String packageName = com.xiaomi.xmsf.Config.APPLICATION_ID;
         Date date = new Date();
         String title = context.getString(R.string.debug_test_title);
         String description = context.getString(R.string.debug_test_content) + date.toString();
