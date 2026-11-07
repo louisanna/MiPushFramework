@@ -21,6 +21,7 @@ android {
 
 dependencies {
     api project(':connector-api')
+    implementation project(':config')
     implementation 'com.elvishew:xlog:1.11.0'
     implementation 'androidx.core:core:1.12.0'
     compileOnly files("../mipush_hook/libs/miuipushsdkshared_woven.jar")
