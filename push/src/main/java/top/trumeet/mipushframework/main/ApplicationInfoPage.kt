@@ -470,7 +470,7 @@ private fun SettingsPreview() {
     Utils.context = context
 
     val app = RegisteredApplication()
-    app.packageName = BuildConfig.APPLICATION_ID
+    app.packageName = com.xiaomi.xmsf.Config.APPLICATION_ID
     app.appName = "test app"
     val page = ApplicationInfoPage()
     page.init(app)
