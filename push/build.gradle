@@ -155,6 +155,7 @@ dependencies {
     implementation project(':condom')
     implementation files("../mipush_hook/libs/mipush_hook_aspects.jar")
     implementation project(':connector')
+    implementation project(':config')
     implementation files("../mipush_hook/libs/miuipushsdkshared_woven.jar")
 // }
 
