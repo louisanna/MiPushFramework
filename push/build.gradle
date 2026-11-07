@@ -1,28 +1,33 @@
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'io.github.wurensen.android-aspectjx'
-apply plugin: 'org.greenrobot.greendao'
 
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+    buildFeatures {
+        buildConfig true
+    }
+    compileSdk 37
 
     defaultConfig {
         applicationId "com.xiaomi.xmsf"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdk 21
         // Keep alive
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        targetSdk 37
         // XMPush sdk requires XMPushService not exported, but sdk will start exported XMPushService after
         // XMSF version code 106. SDK will also check version code must >= 105.
         // @see com.xiaomi.mipush.sdk.PushServiceClient#register
         // @see com.xiaomi.mipush.sdk.PushServiceClient#createServiceIntent
         // @see com.xiaomi.mipush.sdk.PushServiceClient#getPushServiceName
-        // Fork 版本号重新编号：versionName 0.1.0 / versionCode 10012。
+        // Fork 版本号重新编号：versionName 0.1.0 / versionCode 10017。
         // 10000 < 上游 0.3.11 的 1003003000，属于降级；从旧版升级必须先彻底移除旧包
         // （pm uninstall），让系统在重启后把这个 APK 当成全新安装来解析。
-        versionCode 10012
-        versionName "0.1.12"
-        archivesBaseName = "xmsf-v${versionName}"
+        versionCode 10017
+        versionName "0.1.17"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
@@ -60,16 +65,7 @@ android {
         }
     }
 
-    aspectjx {
-        enabled = false
-    }
-
-    greendao {
-        // Must upgrade version code!
-        schemaVersion 17
-        daoPackage 'top.trumeet.mipush.provider.gen.db'
-    }
-    namespace 'top.trumeet.mipush.provider'
+            namespace 'top.trumeet.mipush.provider'
 
     signingConfigs {
         debug {
@@ -132,7 +128,7 @@ android {
             signingConfig signingConfigs.release
             minifyEnabled false
             //shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -150,26 +146,16 @@ android {
     buildFeatures {
         compose true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion "1.4.0"
-    }
-    namespace 'com.xiaomi.xmsf'
-}
-
-android.applicationVariants.all { variant ->
-    String taskName = String.format("remove%sStubClasses", variant.name.capitalize())
-    task "${taskName}" {
-        doLast { delete "${buildDir}/intermediates/classes/${variant.name}" + "/android" }
-    }
-    variant.getProcessJavaResourcesProvider().get().dependsOn(taskName)
+        namespace 'com.xiaomi.xmsf'
 }
 
 dependencies {
 // modules {
     implementation project(':common')
     implementation project(':condom')
-    implementation project(':mipush_hook')
-    compileOnly files(project(':mipush_hook').ext.mipushLib)
+    implementation files("../mipush_hook/libs/mipush_hook_aspects.jar")
+    implementation project(':connector')
+    implementation files("../mipush_hook/libs/miuipushsdkshared_woven.jar")
 // }
 
 // feature dependencies {
@@ -222,4 +208,14 @@ dependencies {
 // }
 
 
+}
+androidComponents {
+    beforeVariants(selector().all()) { variantBuilder ->
+        variantBuilder.enableUnitTest = true
+    }
+}
+
+dependencies {
+    implementation "androidx.compose.foundation:foundation:1.4.0"
+    implementation "org.aspectj:aspectjrt:1.9.22"
 }
