@@ -8,7 +8,7 @@ import com.elvishew.xlog.XLog;
 import com.xiaomi.mipush.sdk.MiPushCommandMessage;
 import com.xiaomi.mipush.sdk.MiPushMessage;
 import com.xiaomi.mipush.sdk.PushMessageReceiver;
-import com.xiaomi.xmsf.push.service.XMAccountManager;
+import com.xiaomi.xmsf.connector.XMAccountManager;
 
 
 
