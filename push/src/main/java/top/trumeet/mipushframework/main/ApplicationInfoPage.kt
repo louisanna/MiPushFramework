@@ -149,7 +149,7 @@ class ApplicationInfoPage : ComponentActivity() {
     }
 
     /**
-     * 把当前应用加入/移出 MiPushZygisk 模块的 app.conf。
+     * 把当前应用加入/移出 MiPushZygisk 模块的 apps.db。
      * 加入后模块会在该应用进程启动前伪装小米设备属性（强制走 MiPush）。
      */
     @Composable
