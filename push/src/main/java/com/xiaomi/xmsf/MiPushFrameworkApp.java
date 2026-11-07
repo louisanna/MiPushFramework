@@ -6,6 +6,7 @@ import static top.trumeet.common.Constants.TAG_CONDOM;
 
 import android.app.Application;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
@@ -27,7 +28,7 @@ import com.oasisfeng.condom.CondomOptions;
 import com.oasisfeng.condom.CondomProcess;
 import com.xiaomi.xmsf.push.control.PushControllerUtils;
 import com.xiaomi.xmsf.push.control.XMOutbound;
-import com.xiaomi.xmsf.push.service.MiuiPushActivateService;
+import com.xiaomi.xmsf.connector.MiuiPushActivateService;
 import com.xiaomi.xmsf.utils.LogUtils;
 
 import top.trumeet.common.Constants;
@@ -115,7 +116,7 @@ public class MiPushFrameworkApp extends Application {
         Intent removeDozeActivityIntent = new Intent().setComponent(
                 new ComponentName(Constants.SERVICE_APP_NAME, Constants.REMOVE_DOZE_COMPONENT_NAME));
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                removeDozeActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                removeDozeActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_WARN)
                 .setContentInfo(getString(R.string.wizard_title_doze_whitelist))
                 .setContentTitle(getString(R.string.wizard_title_doze_whitelist))
