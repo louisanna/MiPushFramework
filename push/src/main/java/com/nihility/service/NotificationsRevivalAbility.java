@@ -7,7 +7,7 @@ import androidx.annotation.RequiresApi;
 import com.xiaomi.push.revival.NotificationsRevivalForSelfUpdated;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class NotificationsRevivalAbility implements XMPushServiceListener {
+public class NotificationsRevivalAbility extends XMPushServiceListener {
     private final NotificationsRevivalForSelfUpdated notificationsRevival;
 
     public NotificationsRevivalAbility(NotificationsRevivalForSelfUpdated notificationsRevival) {
