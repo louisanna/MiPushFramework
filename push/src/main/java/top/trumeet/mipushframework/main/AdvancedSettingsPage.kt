@@ -1,11 +1,8 @@
 package top.trumeet.mipushframework.main
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
@@ -25,7 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.catchingnow.icebox.sdk_client.IceBox
 import com.xiaomi.xmsf.R
 import com.xiaomi.xmsf.SettingUtils
 import com.xiaomi.xmsf.utils.ConfigCenter
@@ -119,18 +115,7 @@ fun ConfigurationsBlock() {
 @Composable
 private fun ExperimentalBlock() {
     val context = LocalContext.current
-    var iceBoxGranted by remember {
-        mutableStateOf(
-            SettingUtils.isIceBoxInstalled()
-                    && SettingUtils.iceBoxPermissionGranted(context)
-        )
-    }
-    val permissionsLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) {
-        iceBoxGranted = it.values.all { granted -> granted }
-        setIceBoxSupported(context, iceBoxGranted)
-    }
+    val zygisk = remember { top.trumeet.mipushframework.utils.ZygiskHelper.snapshot(force = true) }
 
     SettingsGroup(title = stringResource(R.string.settings_experimental)) {
         SettingsItem(
@@ -141,23 +126,19 @@ private fun ExperimentalBlock() {
         }
 
         SettingsItem(
-            title = stringResource(R.string.settings_icebox_permission),
-            summary = stringResource(R.string.settings_icebox_permission_summary),
-            checked = iceBoxGranted,
-            enabled = SettingUtils.isIceBoxInstalled()
+            title = stringResource(R.string.settings_edit_db),
+            summary = if (zygisk.usable) {
+                stringResource(R.string.settings_edit_db_summary)
+            } else {
+                stringResource(R.string.settings_edit_db_unavailable)
+            },
+            enabled = zygisk.usable
         ) {
-            if (!iceBoxGranted) {
-                permissionsLauncher.launch(arrayOf(IceBox.SDK_PERMISSION))
-            }
-            iceBoxGranted = !iceBoxGranted
-            setIceBoxSupported(context, iceBoxGranted)
+            context.startActivity(
+                android.content.Intent(context, ZygiskDbPage::class.java)
+            )
         }
     }
-}
-
-private fun setIceBoxSupported(context: Context, iceBoxGranted: Boolean) {
-    val preferences = ConfigCenter.getSharedPreferences(context)
-    preferences.edit().putBoolean("IceboxSupported", iceBoxGranted).apply()
 }
 
 @Composable
