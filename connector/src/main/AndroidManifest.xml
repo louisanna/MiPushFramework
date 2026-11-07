@@ -19,5 +19,13 @@
                 <action android:name="android.intent.action.PACKAGE_REMOVED" />
                 <data android:scheme="package" />
             </intent-filter>
+        </receiver>        <receiver android:name=".receivers.BootReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>        <receiver android:name=".receivers.NotificationEventReceiver" android:permission="com.xiaomi.xmsf.permission.NOTIFICATION_ACTIVE" android:exported="true">
+            <intent-filter>
+                <action android:name="com.xiaomi.xmsf.push.NOTIFICATION_ACTIVE" />
+            </intent-filter>
         </receiver>    </application>
 </manifest>
