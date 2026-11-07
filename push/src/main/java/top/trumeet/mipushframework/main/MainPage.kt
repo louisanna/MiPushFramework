@@ -1,6 +1,7 @@
 package top.trumeet.mipushframework.main
 
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -28,6 +29,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -68,13 +71,27 @@ class MainPage : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) !=
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
         mainPageUtils1.initOnCreate(applicationContext) { placeholder = it.toString() }
         setContent {
             Theme {
+                val barColor = MaterialTheme.colorScheme.surface
+                window.statusBarColor = barColor.toArgb()
                 window.navigationBarColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     NavigationBarDefaults.Elevation
                 ).toArgb()
+                val view = LocalView.current
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    val controller = WindowCompat.getInsetsController(window, view)
+                    controller.isAppearanceLightStatusBars = barColor.luminance() > 0.5f
+                    controller.isAppearanceLightNavigationBars = barColor.luminance() > 0.5f
+                }
             }
             Main(Screen.Apps.route.toString()) {
                 {
