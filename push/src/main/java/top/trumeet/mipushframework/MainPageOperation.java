@@ -28,10 +28,10 @@ public class MainPageOperation {
 
     public void showAboutDialog() {
         String versionInfo = String.format("name: %s\ncode: %d\nflavor: %s\ntype: %s",
-                BuildConfig.VERSION_NAME,
-                BuildConfig.VERSION_CODE,
-                BuildConfig.FLAVOR,
-                BuildConfig.BUILD_TYPE);
+                com.xiaomi.xmsf.Config.VERSION_NAME,
+                com.xiaomi.xmsf.Config.VERSION_CODE,
+                com.xiaomi.xmsf.Config.FLAVOR,
+                com.xiaomi.xmsf.Config.BUILD_TYPE);
         AlertDialog.Builder build = new AlertDialog.Builder(context)
                 .setView(R.layout.dialog_about)
                 .setPositiveButton("Copy", (dialogInterface, i) -> {
