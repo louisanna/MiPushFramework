@@ -4,7 +4,7 @@ import android.content.Intent;
 
 import java.util.ArrayList;
 
-public class XMPushServiceListenerNotifier implements XMPushServiceListener {
+public class XMPushServiceListenerNotifier extends XMPushServiceListener {
     private final ArrayList<XMPushServiceListener> listeners = new ArrayList<>();
 
     public void addListener(XMPushServiceListener listener) {
