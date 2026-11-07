@@ -63,12 +63,6 @@
                 <action android:name="com.xiaomi.mipush.ERROR" />
             </intent-filter>
         </receiver>
-
-        <receiver android:name=".push.service.receivers.AccountChangedReceiver" android:exported="true">
-            <intent-filter>
-                <action android:name="android.accounts.LOGIN_ACCOUNTS_CHANGED" />
-            </intent-filter>
-        </receiver>
         <receiver android:name="com.xiaomi.push.service.SelfUpdateReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -90,8 +84,6 @@
         <service android:name="com.xiaomi.push.service.XMJobService" android:enabled="true" android:exported="false" android:permission="android.permission.BIND_JOB_SERVICE" android:process=":connector" />
 
         <service android:name="com.xiaomi.miui.pushads.sdk.MiPushRelayTraceService" />
-
-        <service android:name=".push.service.MiuiPushActivateService" android:exported="true" />
 
         <service android:name="com.xiaomi.push.sdk.MyPushMessageHandler" />
 
