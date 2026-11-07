@@ -312,4 +312,7 @@ This could be the application doing a reverse registration, or the registration 
     <string name="zygisk_state_unavailable">Module not detected or no root</string>
     <string name="zygisk_force_register">Zygisk force register</string>
     <string name="root_required">Root permission is required to edit the Zygisk config</string>
+    <string name="settings_edit_db">Edit apps.db</string>
+    <string name="settings_edit_db_summary">Manage Zygisk spoofed packages</string>
+    <string name="settings_edit_db_unavailable">MiPush Zygisk module or root not available</string>
 </resources>
