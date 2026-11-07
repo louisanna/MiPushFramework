@@ -294,4 +294,7 @@
     <string name="zygisk_state_unavailable">未检测到模块或没有 root</string>
     <string name="zygisk_force_register">Zygisk 强制注册</string>
     <string name="root_required">需要 root 权限才能修改 Zygisk 配置</string>
+    <string name="settings_edit_db">编辑 apps.db</string>
+    <string name="settings_edit_db_summary">管理 Zygisk 伪装应用列表</string>
+    <string name="settings_edit_db_unavailable">未检测到 MiPush Zygisk 模块或 root 权限</string>
 </resources>
