@@ -2,7 +2,7 @@ package com.nihility.service;
 
 import com.xiaomi.push.service.XMPushServiceMessenger;
 
-public class MessengerAbility implements XMPushServiceListener {
+public class MessengerAbility extends XMPushServiceListener {
     private final XMPushServiceMessenger messenger;
 
     public MessengerAbility(XMPushServiceMessenger messenger) {
