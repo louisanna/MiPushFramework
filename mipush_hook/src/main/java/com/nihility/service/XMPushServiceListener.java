@@ -2,20 +2,23 @@ package com.nihility.service;
 
 import android.content.Intent;
 
-import com.xiaomi.push.service.XMPushService;
+/**
+ * 监听器基类（原为 interface + default 方法）。
+ * 改成抽象类后，D8 不再生成 default method 桥接，避免
+ * AbstractMethodError: created() 这类产物不一致问题。
+ */
+public abstract class XMPushServiceListener {
 
-public interface XMPushServiceListener {
-
-    default void created() {
+    public void created() {
     }
 
-    default void destroy() {
+    public void destroy() {
     }
 
-    default void start(Intent intent) {
+    public void start(Intent intent) {
     }
 
-    enum ConnectionStatus {
+    public enum ConnectionStatus {
         connecting,
         connected,
         disconnected;
@@ -25,6 +28,6 @@ public interface XMPushServiceListener {
         }
     }
 
-    default void connectionStatusChanged(ConnectionStatus connectionStatus) {
+    public void connectionStatusChanged(ConnectionStatus connectionStatus) {
     }
 }
