@@ -26,7 +26,7 @@ public class ConfigCenter {
 
     //using MODE_MULTI_PROCESS emmm.....
     public static SharedPreferences getSharedPreferences(Context context) {
-        return context.getSharedPreferences(BuildConfig.APPLICATION_ID + "_preferences", Context.MODE_MULTI_PROCESS);
+        return context.getSharedPreferences(com.xiaomi.xmsf.Config.APPLICATION_ID + "_preferences", Context.MODE_MULTI_PROCESS);
     }
 
     /**
