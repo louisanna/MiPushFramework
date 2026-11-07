@@ -1,6 +1,6 @@
 package com.nihility.service;
 
-public class ForegroundAbility implements XMPushServiceListener {
+public class ForegroundAbility extends XMPushServiceListener {
     public final ForegroundHelper foregroundHelper;
 
     public ForegroundAbility(ForegroundHelper foregroundHelper) {
