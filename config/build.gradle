@@ -1,0 +1,29 @@
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'com.xiaomi.xmsf.config'
+    compileSdk 37
+
+    defaultConfig {
+        minSdk 21
+        targetSdk 37
+    }
+
+    buildFeatures {
+        buildConfig false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+dependencies {
+    api project(':common')
+    implementation 'com.elvishew:xlog:1.11.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'androidx.documentfile:documentfile:1.0.1'
+    implementation 'androidx.core:core:1.12.0'
+    compileOnly files("../mipush_hook/libs/miuipushsdkshared_woven.jar")
+}
