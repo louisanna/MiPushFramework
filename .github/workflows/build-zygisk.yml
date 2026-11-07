@@ -1,55 +1,37 @@
-name: build-zygisk
+name: Build Zygisk module
 
 on:
-  push:
-    branches: [ master ]
   workflow_dispatch:
-
-permissions:
-  contents: write
+  push:
+    paths:
+      - 'zygisk-module/**'
+      - '.github/workflows/build-zygisk.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch upstream MiPushZygisk
-        run: git clone --depth 1 https://github.com/magisk317/MiPushZygisk.git src
-
-      - name: Patch module (exclude framework, read apps.db)
-        run: python3 .ci/patch_zygisk.py
-
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android,armv7-linux-androideabi
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
 
-      - name: Build
-        run: |
-          set -e
-          NDK=$(ls -d /usr/local/lib/android/sdk/ndk/* | sort -V | tail -1)
-          TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin
-          export CC_aarch64_linux_android=$TOOLCHAIN/aarch64-linux-android21-clang
-          export AR_aarch64_linux_android=$TOOLCHAIN/llvm-ar
-          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$TOOLCHAIN/aarch64-linux-android21-clang
-          export CC_armv7_linux_androideabi=$TOOLCHAIN/armv7a-linux-androideabi21-clang
-          export AR_armv7_linux_androideabi=$TOOLCHAIN/llvm-ar
-          export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$TOOLCHAIN/armv7a-linux-androideabi21-clang
-          export CARGO_TARGET_AARCH64_LINUX_ANDROID_RUSTFLAGS='-C link-arg=-Wl,-z,max-page-size=16384'
-          export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_RUSTFLAGS='-C link-arg=-Wl,-z,max-page-size=16384'
-          cd src/module
-          cargo build --release --target aarch64-linux-android
-          cargo build --release --target armv7-linux-androideabi
+      - name: Install Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r27d
 
-      - name: Package module
-        run: python3 .ci/package_zygisk.py
+      - name: Build module
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: bash zygisk-module/build.sh
 
-      - name: Publish artifact branch
-        run: |
-          set -e
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-          git checkout -B build-artifacts
-          git add -f out/MiPushZygisk_spoofonly.zip
-          git commit -m "build: MiPushZygisk spoof-only $(date -u +%Y%m%d-%H%M)"
-          git push -f origin build-artifacts
+      - name: Upload module zips
+        uses: actions/upload-artifact@v4
+        with:
+          name: mipush-zygisk-modules
+          path: zygisk-module/build/*.zip
