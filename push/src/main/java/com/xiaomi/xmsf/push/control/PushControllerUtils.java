@@ -31,7 +31,7 @@ import com.xiaomi.push.service.PushServiceConstants;
 import com.xiaomi.xmsf.FirstRegister;
 import com.xiaomi.xmsf.RetryRegister;
 import com.xiaomi.xmsf.connector.receivers.BootReceiver;
-import com.xiaomi.xmsf.push.service.receivers.KeepAliveReceiver;
+import com.xiaomi.xmsf.connector.receivers.KeepAliveReceiver;
 
 import java.util.Objects;
 
