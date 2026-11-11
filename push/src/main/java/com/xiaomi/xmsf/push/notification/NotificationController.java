@@ -311,6 +311,13 @@ public class NotificationController {
     }
 
     public static void processIcon(Context context, String packageName, NotificationCompat.Builder notificationBuilder) {
+        // 需求：通知小图标固定使用目标应用图标的单色版本
+        Bitmap forcedIcon = getMonochromeAppIcon(context, packageName);
+        if (forcedIcon != null) {
+            notificationBuilder.setSmallIcon(IconCompat.createWithBitmap(forcedIcon));
+            notificationBuilder.setColor(getIconColor(context, packageName));
+            return;
+        }
         notificationBuilder.setSmallIcon(R.drawable.ic_notifications_black_24dp);
 
         // refer: https://dev.mi.com/console/doc/detail?pId=2625#_5_0
