@@ -331,6 +331,13 @@ public class NotificationController {
                 notificationBuilder.setSmallIcon(iconCache);
                 return;
             }
+
+            // 最后的兜底：直接使用目标应用图标作为通知图标
+            Bitmap appIcon = getApplicationIconBitmap(context, packageName);
+            if (appIcon != null) {
+                notificationBuilder.setLargeIcon(appIcon);
+                notificationBuilder.setSmallIcon(IconCompat.createWithBitmap(appIcon));
+            }
         }
     }
 
