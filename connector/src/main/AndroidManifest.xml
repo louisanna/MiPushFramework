@@ -44,6 +44,8 @@
             <intent-filter>
                 <action android:name="com.xiaomi.mipush.ERROR" />
             </intent-filter>
-        </receiver>        <service android:name=".ConnectorPushService" android:exported="true" android:process=":connector" android:foregroundServiceType="dataSync" />
+        </receiver>        <service android:name=".ConnectorPushService" android:exported="true" android:process=":connector" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="push connection" />
+        </service>
     </application>
 </manifest>
