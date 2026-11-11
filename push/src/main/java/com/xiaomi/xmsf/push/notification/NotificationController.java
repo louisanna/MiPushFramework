@@ -260,6 +260,21 @@ public class NotificationController {
     }
 
 
+
+    private static Bitmap getApplicationIconBitmap(Context context, String packageName) {
+        try {
+            android.graphics.drawable.Drawable drawable =
+                    context.getPackageManager().getApplicationIcon(packageName);
+            int size = (int) (48 * context.getResources().getDisplayMetrics().density);
+            Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+            drawable.setBounds(0, 0, size, size);
+            drawable.draw(canvas);
+            return bitmap;
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
     public static void processIcon(Context context, String packageName, NotificationCompat.Builder notificationBuilder) {
         notificationBuilder.setSmallIcon(R.drawable.ic_notifications_black_24dp);
 
@@ -275,6 +290,12 @@ public class NotificationController {
 
         if (largeIconId > 0) {
             notificationBuilder.setLargeIcon(BitmapFactory.decodeResource(pkgContext.getResources(), largeIconId));
+        } else {
+            // 应用没有声明通知大图标时，直接使用应用自身图标
+            Bitmap appIcon = getApplicationIconBitmap(context, packageName);
+            if (appIcon != null) {
+                notificationBuilder.setLargeIcon(appIcon);
+            }
         }
 
         notificationBuilder.setColor(getIconColor(context, packageName));
@@ -357,7 +378,7 @@ public class NotificationController {
         // Create the PendingIntent
         PendingIntent notifyPendingIntent = PendingIntent.getActivity(
                 context, 0, notifyIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_IMMUTABLE
         );
 
         localBuilder.setContentIntent(notifyPendingIntent);
