@@ -27,7 +27,7 @@ public class ConnectorPushService extends IntentService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // 可能被 startForegroundService 拉起，先满足 5 秒限制
-        ConnectorForeground.ensure(this, true);
+        ConnectorForeground.ensure(this, false);
         return super.onStartCommand(intent, flags, startId);
     }
 
