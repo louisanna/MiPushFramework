@@ -35,7 +35,12 @@ public final class ConnectorForeground {
                     .setOngoing(true);
             service.startForeground(NOTIFICATION_ID, builder.build());
             if (!keepAlive) {
-                service.stopForeground(Service.STOP_FOREGROUND_REMOVE);
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    try {
+                        service.stopForeground(Service.STOP_FOREGROUND_REMOVE);
+                    } catch (Throwable ignored) {
+                    }
+                }, 30_000);
             }
         } catch (Throwable ignored) {
         }
