@@ -61,7 +61,9 @@
         <receiver android:name="com.xiaomi.push.revival.NotificationsRevivalForSelfUpdated" />
 
         <service android:name=".push.service.HttpService" android:exported="true" android:process=":connector" />
-        <service android:name="com.xiaomi.push.service.XMPushService" android:exported="true" android:process=":connector" android:foregroundServiceType="dataSync" />
+        <service android:name="com.xiaomi.push.service.XMPushService" android:exported="true" android:process=":connector" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="push connection" />
+        </service>
 
 
         
@@ -85,4 +87,5 @@
     <receiver android:name="com.catchingnow.icebox.sdk_client.StateReceiver" android:exported="true" tools:node="merge" /></application>
 
 
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" /></manifest>
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" /></manifest>
