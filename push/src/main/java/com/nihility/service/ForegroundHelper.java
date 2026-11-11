@@ -25,7 +25,11 @@ public class ForegroundHelper {
 
     public void startForeground() {
         createNotificationGroupForPushStatus();
-        showForegroundNotificationToKeepAlive();
+        try {
+            showForegroundNotificationToKeepAlive();
+        } catch (Throwable ignored) {
+            // Android 14+ 某些 FGS 类型/配额耗尽时启动会失败，不能让它拖垮服务创建
+        }
         if (!Global.ConfigCenter().isStartForegroundService()) {
             // 被 startForegroundService 拉起后必须保持前台至少通过系统检查，
             // 立即 stop 会触发 Stop FGS timeout，这里延迟 30 秒再移除通知。
