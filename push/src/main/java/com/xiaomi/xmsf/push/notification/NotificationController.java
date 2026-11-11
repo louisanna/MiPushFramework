@@ -141,10 +141,8 @@ public class NotificationController {
 
         CustomConfiguration configuration = XMPushUtils.getConfiguration(metaInfo);
         String iconUri = configuration.notificationLargeIconUri(null);
-        Bitmap largeIcon = getLargeIcon(context, metaInfo, iconUri);
-        if (largeIcon != null) {
-            notificationBuilder.setLargeIcon(largeIcon);
-        }
+        // 按需求：不显示右侧大图标
+
 
         String subText = configuration.subText(null);
         buildExtraSubText(context, packageName, notificationBuilder, subText);
@@ -275,6 +273,43 @@ public class NotificationController {
             return null;
         }
     }
+
+    private static Bitmap getMonochromeAppIcon(Context context, String packageName) {
+        try {
+            android.graphics.drawable.Drawable drawable =
+                    context.getPackageManager().getApplicationIcon(packageName);
+            android.graphics.drawable.Drawable src = drawable;
+            if (drawable instanceof android.graphics.drawable.AdaptiveIconDrawable) {
+                src = ((android.graphics.drawable.AdaptiveIconDrawable) drawable).getForeground();
+            }
+            int size = (int) (48 * context.getResources().getDisplayMetrics().density);
+            Bitmap raw = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas canvas = new android.graphics.Canvas(raw);
+            src.setBounds(0, 0, size, size);
+            src.draw(canvas);
+
+            Bitmap mono = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            boolean opaque = true;
+            for (int y = 0; y < size; y++) {
+                for (int x = 0; x < size; x++) {
+                    int c = raw.getPixel(x, y);
+                    int a = android.graphics.Color.alpha(c);
+                    if (a < 250) {
+                        opaque = false;
+                    }
+                    int lum = (android.graphics.Color.red(c) * 299
+                            + android.graphics.Color.green(c) * 587
+                            + android.graphics.Color.blue(c) * 114) / 1000;
+                    int alpha = a < 8 ? 0 : (opaque ? (255 - lum) : a);
+                    mono.setPixel(x, y, android.graphics.Color.argb(alpha, 255, 255, 255));
+                }
+            }
+            return mono;
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
     public static void processIcon(Context context, String packageName, NotificationCompat.Builder notificationBuilder) {
         notificationBuilder.setSmallIcon(R.drawable.ic_notifications_black_24dp);
 
@@ -289,13 +324,7 @@ public class NotificationController {
         int smallIconId = getIconId(context, packageName, NOTIFICATION_SMALL_ICON);
 
         if (largeIconId > 0) {
-            notificationBuilder.setLargeIcon(BitmapFactory.decodeResource(pkgContext.getResources(), largeIconId));
-        } else {
-            // 应用没有声明通知大图标时，直接使用应用自身图标
-            Bitmap appIcon = getApplicationIconBitmap(context, packageName);
-            if (appIcon != null) {
-                notificationBuilder.setLargeIcon(appIcon);
-            }
+            // 按需求：右侧不再显示大图标
         }
 
         notificationBuilder.setColor(getIconColor(context, packageName));
@@ -332,11 +361,10 @@ public class NotificationController {
                 return;
             }
 
-            // 最后的兜底：直接使用目标应用图标作为通知图标
-            Bitmap appIcon = getApplicationIconBitmap(context, packageName);
-            if (appIcon != null) {
-                notificationBuilder.setLargeIcon(appIcon);
-                notificationBuilder.setSmallIcon(IconCompat.createWithBitmap(appIcon));
+            // 最后的兜底：目标应用图标转单色，作为小图标
+            Bitmap monoIcon = getMonochromeAppIcon(context, packageName);
+            if (monoIcon != null) {
+                notificationBuilder.setSmallIcon(IconCompat.createWithBitmap(monoIcon));
             }
         }
     }
