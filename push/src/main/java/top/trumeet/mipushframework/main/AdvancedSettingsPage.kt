@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -36,9 +39,14 @@ class AdvancedSettingsPage : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             Theme {
-                window.navigationBarColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                    NavigationBarDefaults.Elevation
-                ).toArgb()
+                window.statusBarColor = android.graphics.Color.TRANSPARENT
+                window.navigationBarColor = android.graphics.Color.TRANSPARENT
+                val view = androidx.compose.ui.platform.LocalView.current
+                val lightStatusBar = MaterialTheme.colorScheme.background.luminance() > 0.5f
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    val controller = androidx.core.view.WindowCompat.getInsetsController(window, view)
+                    controller.isAppearanceLightStatusBars = lightStatusBar
+                }
             }
             SettingsApp()
         }
@@ -51,6 +59,8 @@ private fun SettingsApp() {
         Surface(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
                 .verticalScroll(rememberScrollState()),
             color = MaterialTheme.colorScheme.background
         ) {
